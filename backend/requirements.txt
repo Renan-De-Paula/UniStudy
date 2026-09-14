@@ -1,0 +1,14 @@
+django>=5.0
+djangorestframework
+djangorestframework-simplejwt
+psycopg2-binary
+django-cors-headers
+channels
+channels-redis
+daphne
+dj-rest-auth
+django-allauth
+gunicorn
+dj-database-url
+whitenoise
+python-dotenv
