@@ -3,8 +3,8 @@
 O **UniStudy Hub** é uma plataforma acadêmica moderna focada em conectar alunos e professores através de um ambiente gamificado, fóruns ativos e grupos de estudos (Squads). 
 
 ### 🌞 Tema Claro vs 🌙 Tema Escuro
-![Dashboard do UniStudy Hub - Light Mode](docs/dashboard_light.jpg)
-![Dashboard do UniStudy Hub - Dark Mode](docs/dashboard.jpg)
+![Dashboard do UniStudy Hub - Light Mode](docs/telaInicialLight.png)
+![Dashboard do UniStudy Hub - Dark Mode](docs/telaInicialDark.png)
 
 ## 🚀 Principais Funcionalidades
 
@@ -14,8 +14,8 @@ O **UniStudy Hub** é uma plataforma acadêmica moderna focada em conectar aluno
 - **Mentoria Integrada:** Professores e alunos veteranos recebem selos de destaque.
 - **Apostilas e Repositório:** Área para compartilhamento de materiais, links e anotações ricas.
 
-![Fórum Acadêmico - Light Mode](docs/forum.jpg)
-![Fórum Acadêmico - Dark Mode](docs/forum_dark.jpg)
+![Fórum Acadêmico - Light Mode](docs/telaForumDuvidasLight.png)
+![Fórum Acadêmico - Dark Mode](docs/telaForumDuvidasDark.png)
 
 ## 🛠️ Tecnologias Utilizadas
 
