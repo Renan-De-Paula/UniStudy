@@ -1,0 +1,56 @@
+Ran command: `Get-Content backend\requirements.txt`
+Ran command: `Get-Content backend\unistudy_hub\settings.py | Select-String "ALLOWED_HOSTS|CORS_ALLOW_ALL_ORIGINS|CORS_ALLOWED_ORIGINS" -Context 0,2`
+Ran command: `Get-Content backend\unistudy_hub\settings.py | Select-String "MIDDLEWARE =" -Context 0,10`
+Ran command: `Get-Content backend\unistudy_hub\settings.py | Select-String "STATIC_ROOT"`
+Ran command: `Get-Content frontend\src\services\api.js`
+
+Respondendo à sua pergunta: **Não, não demora quase nada!** Como eu já deixei o código 100% preparado para a nuvem (com permissões de CORS, variáveis de ambiente, dependências do Gunicorn e do Whitenoise configuradas), esse processo vai levar **cerca de 10 minutos**. 
+
+A melhor forma de subir mantendo o Front-end e o Back-end interligados é usar o **Render.com** (para a API/Banco) e a **Vercel** (para as Telas). 
+
+Aqui está o passo a passo definitivo de como vamos fazer:
+
+### Passo 1: Subir para o GitHub (Obrigatório)
+As plataformas puxam o código automaticamente do GitHub.
+1. Crie uma conta no [GitHub](https://github.com/).
+2. Baixe o **GitHub Desktop** no seu computador (é a forma mais visual e fácil).
+3. Crie um novo repositório lá e coloque a pasta do seu projeto inteira dentro.
+4. Faça o *Commit* e clique em **Publish branch** para subir para a nuvem do GitHub.
+
+---
+
+### Passo 2: Hospedar o Back-end (Render.com)
+O Render vai hospedar seu código Python e a Inteligência Artificial.
+1. Acesse o [Render.com](https://render.com/) e faça login com seu GitHub.
+2. Clique em **New +** e escolha **Web Service**.
+3. Selecione o repositório do seu projeto que você acabou de subir.
+4. Na tela de configuração, preencha exatamente assim:
+   * **Language:** Python
+   * **Root Directory:** `backend` *(isso é muito importante)*
+   * **Build Command:** `pip install -r requirements.txt && python manage.py migrate && python manage.py collectstatic --noinput`
+   * **Start Command:** `gunicorn unistudy_hub.wsgi`
+5. Role até o final, adicione uma variável de ambiente (**Environment Variable**) chamada `GEMINI_API_KEY` e cole a sua chave da API.
+6. Clique em **Create Web Service**. 
+7. Ele vai começar a compilar. Quando terminar, ele te dará um link no canto superior esquerdo (ex: `https://unistudy-api.onrender.com`). **Copie esse link!**
+
+*(Observação sobre o Render gratuito: Toda vez que o servidor for atualizado com código novo, as contas criadas no SQLite somem. Para testes acadêmicos é perfeito. Quando forem lançar oficialmente, trocamos para um PostgreSQL gratuito).*
+
+---
+
+### Passo 3: Hospedar o Front-end (Vercel)
+A Vercel vai hospedar suas telas em React e conectá-las ao Render.
+1. Acesse a [Vercel](https://vercel.com/) e faça login com seu GitHub.
+2. Clique em **Add New...** e escolha **Project**.
+3. Importe o repositório do seu projeto.
+4. Na tela de configuração, preencha assim:
+   * **Framework Preset:** Vite
+   * **Root Directory:** Clique em Edit e selecione a pasta `frontend`.
+5. Abra a aba **Environment Variables** e crie uma variável:
+   * **Key:** `VITE_API_URL`
+   * **Value:** Cole aqui o link que o Render gerou no Passo 2, colocando `/api` no final. *(Exemplo: `https://unistudy-api.onrender.com/api`)*
+6. Clique em **Deploy**.
+
+**PRONTO! 🚀** 
+A Vercel vai te dar um link bonitinho (ex: `unistudy.vercel.app`). É esse link que você vai mandar no WhatsApp do seu grupo. Quando eles acessarem, o React (Vercel) vai se comunicar em tempo real com o Python (Render), gerando as trilhas de IA perfeitamente.
+
+Me avise se tiver qualquer dificuldade no processo do GitHub ou nessas plataformas!

@@ -4,13 +4,16 @@ import './index.css'
 import App from './App.jsx'
 import { AuthProvider } from './contexts/AuthContext'
 import { ThemeProvider } from './contexts/ThemeContext'
+import { WebSocketProvider } from './contexts/WebSocketContext'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <AuthProvider>
-      <ThemeProvider>
-        <App />
-      </ThemeProvider>
+      <WebSocketProvider>
+        <ThemeProvider>
+          <App />
+        </ThemeProvider>
+      </WebSocketProvider>
     </AuthProvider>
   </StrictMode>,
 )

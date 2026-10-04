@@ -19,6 +19,7 @@ class User(AbstractUser):
     bio = models.TextField(blank=True, null=True)
     skills = models.JSONField(default=list, blank=True)
     is_email_verified = models.BooleanField(default=False)
+    avatar = models.TextField(blank=True, null=True)
 
 class EmailVerificationToken(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='email_tokens')

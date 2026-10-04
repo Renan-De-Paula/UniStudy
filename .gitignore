@@ -21,3 +21,6 @@ build/
 .DS_Store
 *.exe
 *.zip
+fix*.py
+run_export.py
+gerar_pdf_deploy.py

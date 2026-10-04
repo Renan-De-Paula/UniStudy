@@ -79,3 +79,16 @@ class FriendshipViewSet(viewsets.ModelViewSet):
         friendship.status = FriendshipStatus.REJECTED
         friendship.save()
         return Response({"status": "Amizade recusada."})
+
+
+from rest_framework.views import APIView
+
+class RedirecionamentoPosLoginView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        if request.user.trilhas.count() == 0:
+            return Response({'redirect_to': '/onboarding'})
+        else:
+            return Response({'redirect_to': '/'})
+

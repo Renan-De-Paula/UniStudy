@@ -12,3 +12,9 @@ gunicorn
 dj-database-url
 whitenoise
 python-dotenv
+pytest-django
+django-storages
+boto3
+
+google-genai
+pydantic

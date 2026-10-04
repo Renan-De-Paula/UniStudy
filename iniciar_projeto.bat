@@ -1,55 +1,36 @@
 @echo off
 echo ===================================================
-echo Inicializando a Plataforma UniStudy Hub com MySQL...
+echo Inicializando a Plataforma UniStudy Hub
 echo ===================================================
 
 echo.
-echo [1/4] Tentando iniciar o servico MySQL do Windows...
-echo (Nota: Talvez seja necessario rodar este script como Administrador se o servico estiver parado)
-net start mysql80 >nul 2>&1
-if %errorlevel% neq 0 (
-    net start mysql >nul 2>&1
-)
-echo Assumindo que o MySQL (3306) esta disponivel. Se houver falha de conexao, abra o Workbench ou inicie o servico do MySQL manualmente.
-
-echo.
-echo [2/4] Preparando o Frontend (Instalando dependencias do Node)...
-cd frontend
-:: Inicia o frontend em uma nova janela para poder debugar facilmente
-start "UniStudy - Frontend" cmd /k "npm install --legacy-peer-deps && npm run dev"
-cd ..
-
-echo.
-echo [3/4] Preparando o Backend (Python/Django)...
+echo [1/3] Verificando ambiente e instalando dependencias do Backend...
 cd backend
 if not exist venv (
     echo Criando Ambiente Virtual Python...
     python -m venv venv
 )
 call venv\Scripts\activate
-echo Instalando bibliotecas necessarias...
 pip install -r requirements.txt >nul 2>&1
-:: Garante que dotenv e pymysql estao instalados para funcionar o MySQL
-pip install python-dotenv pymysql >nul 2>&1
-
-echo.
-echo Aplicando migracoes no banco MySQL local (unistudy_db)...
-:: O banco de dados unistudy_db precisa existir no MySQL. 
-:: Se nao existir, este comando mostrara erro no console do backend.
 python manage.py migrate
+cd ..
 
 echo.
-echo [4/4] Iniciando Servidor Backend (Django API)...
-:: Inicia o backend em uma nova janela
-start "UniStudy - Backend" cmd /k "python manage.py runserver 8000"
-cd ..
+echo [2/3] Iniciando o Backend (Django API) na porta 8001...
+:: Mudamos a porta para 8001 porque a 8000 ja esta ocupada por outro projeto seu ("Concursos .TI")
+start "UniStudy - Backend" cmd /k "cd backend && venv\Scripts\activate && python manage.py runserver 8001"
+
+echo.
+echo [3/3] Iniciando o Frontend (React) na porta 5173...
+start "UniStudy - Frontend" cmd /k "cd frontend && npm install --legacy-peer-deps && npm run dev"
 
 echo.
 echo ===================================================
 echo TUDO PRONTO! SERVIDORES NATIVOS INICIADOS:
 echo.
 echo Frontend (React): http://localhost:5173
-echo Backend (Django API): http://localhost:8000
+echo Backend (Django API): http://localhost:8001
 echo ===================================================
-echo Para parar a aplicacao, feche as duas janelas pretas do Frontend e Backend que foram abertas.
+echo OBS: As janelas do servidor foram abertas separadamente.
+echo Para parar o sistema, feche as duas janelas pretas do Prompt.
 pause >nul
