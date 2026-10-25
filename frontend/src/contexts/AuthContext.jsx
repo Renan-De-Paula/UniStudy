@@ -50,23 +50,9 @@ export function AuthProvider({ children }) {
       } catch (err) {
         return '/';
       }
-    } catch (error) {
-      console.warn('Backend offline ou erro não login. Usando Fallback Local para desenvolvimento.');
-      
-      // Fallback para permitir que o usuário continue testando o visual da plataforma
-      // Se ele tentou logar com RenanUnivesp@gmail.com, a gente cria esse mock específico:
-      setCurrentUser({
-        id: 999,
-        username: username,
-        email: username.includes('@') ? username : `${username}@gmail.com`,
-        name: username.split('@')[0],
-        avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Felix',
-        level: 10,
-        xp: 4500,
-        role: 'STUDENT'
-      });
-      return true; // Retorna true para deixar passar
-    }
+    } catch (error) {
+      throw error;
+    }
   };
 
   const logout = () => {

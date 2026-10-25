@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0b1014" />
+    <title>Trilha | Seu próximo nível, com direção</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="ambient ambient-1"></div>
+    <div class="ambient ambient-2"></div>
+    <header class="topbar">
+      <a class="brand" href="#">
+        <div>
+          <strong>TRILHA</strong>
+          <span>roadmap inteligente</span>
+        </div>
+      </a>
+      <div class="topbar-meta">
+        <div class="step-counter">
+          <span id="stepCurrent">01</span> / <span id="stepTotal">05</span>
+        </div>
+      </div>
+    </header>
+    <main>
+      <section id="wizard" class="wizard">
+        <div class="wizard-intro">
+          <span class="eyebrow">COMECE PELO ESSENCIAL</span
+          ><span class="micro-copy">leva menos de 2 minutos</span>
+        </div>
+        <div class="progress"><div id="progressBar"></div></div>
+        <div class="question active" data-step="1">
+          <span class="eyebrow">01 · IDENTIDADE</span>
+          <h1>Vamos construir seu<br /><em>próximo caminho.</em></h1>
+          <p class="lead">
+            Um plano bom começa entendendo a pessoa que vai colocá-lo em
+            prática.
+          </p>
+          <label for="nome">Como podemos te chamar?</label>
+          <input
+            id="nome"
+            type="text"
+            placeholder="Seu nome"
+            autocomplete="name"
+          />
+        </div>
+        <div class="question" data-step="2">
+          <span class="eyebrow">02 · FORMAÇÃO</span>
+          <h1>O que você está<br /><em>aprendendo?</em></h1>
+          <p class="lead">
+            Pode ser faculdade, técnico, bootcamp ou estudo independente. Toda
+            base conta.
+          </p>
+          <label for="curso">Seu curso ou área</label>
+          <input
+            id="curso"
+            type="text"
+            placeholder="Ex.: Engenharia da Computação"
+          />
+        </div>
+        <div class="question" data-step="3">
+          <span class="eyebrow">03 · DESTINO</span>
+          <h1>Onde você quer<br /><em>chegar?</em></h1>
+          <p class="lead">
+            A IA cruza seu objetivo com habilidades valorizadas e transforma
+            ambição em próximos passos.
+          </p>
+          <label>Escolha seu objetivo</label>
+          <div class="choices" id="objetivos">
+            <button data-value="Desenvolvimento de Software">
+              Desenvolvimento de Software <span>↗</span>
+            </button>
+            <button data-value="Backend / APIs">
+              Backend / APIs <span>↗</span>
+            </button>
+            <button data-value="Dados / IA">
+              Dados / IA <span>↗</span>
+            </button>
+            <button data-value="Automação Industrial">
+              Automação Industrial <span>↗</span>
+            </button>
+            <button data-value="Eletrônica / Hardware">
+              Eletrônica / Hardware <span>↗</span>
+            </button>
+            <button data-value="Outro">
+              Outro <span>↗</span>
+            </button>
+          </div>
+          <br>
+          <input
+            id="objetivoOutro"
+            class="hidden"
+            type="text"
+            placeholder="Digite seu objetivo"
+          />
+        </div>
+        <div class="question" data-step="4">
+          <span class="eyebrow">04 · DISPONIBILIDADE</span>
+          <h1>Quanto tempo você<br /><em>tem para evoluir?</em></h1>
+          <p class="lead">
+            A trilha deve caber na sua vida real, não o contrário.
+          </p>
+          <div class="split-inputs">
+            <div>
+              <label for="semanas">Semanas</label>
+              <input id="semanas" type="number" min="1" max="52" value="4" />
+            </div>
+            <div>
+              <label for="horasPorDia">Horas por dia</label>
+              <input
+                id="horasPorDia"
+                type="number"
+                min="0.5"
+                max="12"
+                step="0.5"
+                value="2"
+              />
+            </div>
+          </div>
+          <div class="capacity-note">
+            <span>✦</span> Vamos calibrar a intensidade para você manter
+            consistência.
+          </div>
+        </div>
+        <div class="question" data-step="5">
+          <span class="eyebrow">05 · PRONTO</span>
+          <h1>Seu mapa começa<br /><em>agora.</em></h1>
+          <p class="lead">
+            Revise os dados e deixe a Trilha desenhar seu próximo ciclo de
+            evolução.
+          </p>
+          <div class="summary-card" id="summary"></div>
+          <div class="trust-row">
+            <span>●</span> Seu plano é único <span>●</span> Feito para sua
+            rotina
+          </div>
+        </div>
+        <div class="actions">
+          <button id="backBtn" class="btn ghost" disabled>
+            ← <span>Voltar</span>
+          </button>
+          <button id="nextBtn" class="btn primary">
+            Continuar <span>→</span>
+          </button>
+        </div>
+      </section>
+      <section id="loading" class="loading hidden">
+        <div class="loader-orbit">
+          <span></span>
+        </div>
+        <span class="eyebrow">ANALISANDO SEU CONTEXTO</span>
+        <h2>Desenhando sua rota...</h2>
+        <p>Comparando objetivo, gaps e tempo disponível.</p>
+        <div class="loading-lines"><i></i><i></i><i></i></div>
+      </section>
+      <section id="skills" class="skills hidden">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow">DIAGNÓSTICO</span>
+            <h2>Onde você está agora?</h2>
+            <p>
+              Avalie seu nível. Quanto mais honesto, mais precisa fica a rota.
+            </p>
+          </div>
+          <div class="legend">
+            <span>0</span> Nenhum <span>1</span> Básico
+            <span>2</span> Intermediário <span>3</span> Avançado
+          </div>
+        </div>
+        <div class="skills-progress">
+          <span id="skillsProgressBar"></span>
+        </div>
+        <div id="skillsList"></div>
+        <button id="generateBtn" class="btn primary big">
+          Gerar minha trilha <span>→</span>
+        </button>
+      </section>
+      <section id="roadmap" class="roadmap hidden">
+        <div class="roadmap-head">
+          <div>
+            <div class="eyebrow-row">
+              <span class="eyebrow">SEU ROADMAP</span>
+              <span class="live-pill"><i></i> plano ativo</span>
+            </div>
+            <h1 id="roadmapTitle">Sua próxima evolução.</h1>
+            <p id="diagnosis"></p>
+          </div>
+          <div class="roadmap-actions">
+            <button id="exportBtn" class="btn ghost">↓ Exportar</button
+            ><button id="restartBtn" class="btn ghost">
+              ↻ Novo diagnóstico
+            </button>
+          </div>
+        </div>
+        <div class="dashboard-stats">
+          <div class="stat-card accent">
+            <span class="stat-label">PROGRESSO GERAL</span>
+            <strong id="overallProgress">0%</strong>
+            <div class="stat-bar"><i id="overallProgressBar"></i></div>
+            <small id="completedLabel">0 de 0 tarefas concluídas</small>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">RITMO DA TRILHA</span>
+            <strong id="weeksStat">0 semanas</strong>
+            <small id="hoursStat">0h de dedicação planejada</small>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">PRÓXIMO FOCO</span>
+            <strong id="nextFocus">Comece pelo dia 1</strong>
+            <small>um passo de cada vez</small>
+          </div>
+        </div>
+        <div class="roadmap-toolbar">
+          <div>
+            <span class="eyebrow">JORNADA DE APRENDIZADO</span>
+            <p>
+              Marque o que concluir. Seu progresso fica salvo neste dispositivo.
+            </p>
+          </div>
+          <div class="filter-group">
+            <button class="filter active" data-filter="all">Tudo</button>
+            <button class="filter" data-filter="pending">Pendentes</button>
+            <button class="filter" data-filter="done">Feitos</button>
+          </div>
+        </div>
+        <div class="route-line"></div>
+        <div id="weeks"></div>
+        <div class="roadmap-end">
+          <span>✦</span> O melhor roadmap é aquele que você consegue continuar
+          amanhã.
+        </div>
+      </section>
+    </main>
+    <div id="toast" class="toast" role="status"></div>
+    <script src="script.js"></script>
+  </body>
+</html>

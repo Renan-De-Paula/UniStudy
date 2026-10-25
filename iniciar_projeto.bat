@@ -11,6 +11,8 @@ if not exist venv (
     python -m venv venv
 )
 call venv\Scripts\activate
+:: Desativa extensoes nativas opcionais do Autobahn, evitando exigir MSVC no Windows.
+set AUTOBAHN_USE_NVX=0
 pip install -r requirements.txt >nul 2>&1
 python manage.py migrate
 cd ..

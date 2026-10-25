@@ -1,7 +1,7 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../services/api';
-import { ArrowLeft, CheckCircle2, Circle, Clock, Layout, Trophy } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Circle, ExternalLink, Layout, Trophy } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 function TrilhaViewer() {
@@ -45,6 +45,7 @@ function TrilhaViewer() {
   if (!trilha) return <div className="p-8 text-center text-red-400">Trilha não encontrada.</div>;
 
   const modulos = trilha.conteudo_gerado?.modulos || [];
+  const semanas = trilha.conteudo_gerado?.cronograma_semanal || [];
 
   return (
     <div className="min-h-screen bg-darker p-4 md:p-8">
@@ -74,6 +75,61 @@ function TrilhaViewer() {
             </div>
           </div>
         </div>
+
+        {semanas.length > 0 && (
+          <section className="mb-8">
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <p className="text-primary text-sm font-bold uppercase tracking-widest">Seu roadmap</p>
+                <h2 className="text-2xl font-black text-white">Plano semanal de evolução</h2>
+              </div>
+              <span className="text-slate-400 text-sm">{semanas.length} semanas planejadas</span>
+            </div>
+            <div className="space-y-5">
+              {semanas.map((semana) => (
+                <article key={semana.semana_numero} className="bg-slate-800/50 rounded-xl border border-slate-700/50 p-5">
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className="min-w-12 h-12 rounded-xl bg-primary/15 border border-primary/30 flex items-center justify-center text-primary font-black">
+                      {semana.semana_numero}
+                    </div>
+                    <div>
+                      <p className="text-xs text-primary font-bold uppercase tracking-widest">Semana {semana.semana_numero}</p>
+                      <h3 className="text-xl font-bold text-white">{semana.foco_principal}</h3>
+                    </div>
+                  </div>
+                  <div className="grid gap-3 md:grid-cols-2">
+                    {(semana.dicas_diarias || []).map((atividade, index) => {
+                      const topicoTitle = `Semana ${semana.semana_numero} - Dia ${index + 1}`;
+                      const isDone = trilha.topicos_concluidos.includes(topicoTitle);
+                      return (
+                        <button
+                          key={topicoTitle}
+                          type="button"
+                          onClick={() => toggleTopico(topicoTitle)}
+                          className={`text-left flex items-start gap-3 rounded-lg border p-3 transition-colors ${isDone ? 'border-primary/40 bg-primary/10' : 'border-slate-700 bg-darker hover:border-primary/40'}`}
+                        >
+                          {isDone ? <CheckCircle2 size={20} className="text-primary mt-0.5 shrink-0" /> : <Circle size={20} className="text-slate-500 mt-0.5 shrink-0" />}
+                          <span className={isDone ? 'text-primary line-through opacity-70' : 'text-slate-300'}>
+                            <strong className="block text-xs uppercase text-slate-500 mb-1">Dia {index + 1}</strong>
+                            {atividade}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="flex gap-3 mt-4 text-xs">
+                    <a href={`https://www.google.com/search?tbm=bks&q=${encodeURIComponent(semana.foco_principal)}`} target="_blank" rel="noreferrer" className="text-slate-400 hover:text-primary flex items-center gap-1">
+                      Google Books <ExternalLink size={12} />
+                    </a>
+                    <a href={`https://www.youtube.com/results?search_query=${encodeURIComponent(semana.foco_principal)}`} target="_blank" rel="noreferrer" className="text-slate-400 hover:text-primary flex items-center gap-1">
+                      YouTube <ExternalLink size={12} />
+                    </a>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
 
         <div className="space-y-6">
           {modulos.map((modulo, mIndex) => (

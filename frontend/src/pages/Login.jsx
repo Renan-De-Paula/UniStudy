@@ -17,6 +17,7 @@ function Login() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   
   // Lista de sementes (seeds) para a API de avatares desenhados do Dicebear
   const avatarSeeds = ['Felix', 'Aneka', 'Daisy', 'George'];
@@ -45,6 +46,7 @@ function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
     if (isRegistering) {
       if (!name || !email || !password) return;
       try {
@@ -62,17 +64,17 @@ function Login() {
         const url = await login(username, password);
         if (url) navigate(typeof url === 'string' ? url : '/');
       } catch (error) {
-        console.warn('Backend offline. Simulando registro...');
-        const username = email.split('@')[0];
-        const url = await login(username, password);
-        if (url) navigate(typeof url === 'string' ? url : '/');
-      }
-    } else {
-      if (!email || !password) return;
-      const username = email.includes('@') ? email.split('@')[0] : email;
-      const url = await login(username, password);
-      if (url) navigate(typeof url === 'string' ? url : '/');
-      else alert('Credenciais inválidas.');
+        setError(error.response?.data?.email?.[0] || error.response?.data?.detail || 'Não foi possível criar a conta.');
+      }
+    } else {
+      if (!email || !password) return;
+      try {
+        const username = email.includes('@') ? email.split('@')[0] : email;
+        const url = await login(username, password);
+        if (url) navigate(typeof url === 'string' ? url : '/');
+      } catch (error) {
+        setError(error.response?.data?.email?.[0] || error.response?.data?.detail || 'Usuário ou senha inválidos.');
+      }
     }
   };
 
@@ -91,6 +93,8 @@ function Login() {
             {isRegistering ? 'Crie sua conta e evolua seus estudos' : 'Acesse sua conta para continuar'}
           </p>
         </div>
+
+        {error && <div className="mb-5 rounded-lg border border-red-500/50 bg-red-500/10 p-3 text-sm text-red-300">{error}</div>}
 
         <form onSubmit={handleSubmit} className="space-y-5">
           
