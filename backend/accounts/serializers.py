@@ -40,7 +40,8 @@ class RegisterSerializer(serializers.ModelSerializer):
             course=validated_data.get('course', ''),
             semester=validated_data.get('semester', 1),
             avatar=validated_data.get('avatar', ''),
-            is_email_verified=False
+            # O projeto ainda não possui envio de e-mail; a conta fica ativa após o cadastro.
+            is_email_verified=True
         )
         token = EmailVerificationToken.objects.create(user=user)
         print(f"=== EMAIL SIMULATION ===")
@@ -49,12 +50,9 @@ class RegisterSerializer(serializers.ModelSerializer):
         print(f"========================")
         return user
 
-class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-    def validate(self, attrs):
-        data = super().validate(attrs)
-        if not self.user.is_email_verified:
-            raise serializers.ValidationError({"email": "E-mail não verificado. Por favor, verifique seu e-mail antes de fazer login."})
-        return data
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        return super().validate(attrs)
 
 class VerifyEmailSerializer(serializers.Serializer):
     token = serializers.CharField(max_length=64, required=True)

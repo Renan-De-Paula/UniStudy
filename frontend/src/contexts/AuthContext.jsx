@@ -60,9 +60,13 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('refresh_token');
     setCurrentUser(null);
   };
+
+  const updateCurrentUser = (userData) => {
+    setCurrentUser((current) => ({ ...current, ...userData }));
+  };
 
   return (
-    <AuthContext.Provider value={{ currentUser, login, logout, loading }}>
+    <AuthContext.Provider value={{ currentUser, login, logout, updateCurrentUser, loading }}>
       {!loading && children}
     </AuthContext.Provider>
   );

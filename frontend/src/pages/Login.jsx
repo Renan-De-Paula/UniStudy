@@ -18,6 +18,14 @@ function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+
+  const getApiError = (error, fallback) => {
+    const data = error.response?.data;
+    if (!data) return fallback;
+    if (typeof data === 'string') return data;
+    const messages = Object.values(data).flatMap(value => Array.isArray(value) ? value : [value]);
+    return messages.filter(Boolean).join(' ') || fallback;
+  };
   
   // Lista de sementes (seeds) para a API de avatares desenhados do Dicebear
   const avatarSeeds = ['Felix', 'Aneka', 'Daisy', 'George'];
@@ -64,7 +72,7 @@ function Login() {
         const url = await login(username, password);
         if (url) navigate(typeof url === 'string' ? url : '/');
       } catch (error) {
-        setError(error.response?.data?.email?.[0] || error.response?.data?.detail || 'Não foi possível criar a conta.');
+        setError(getApiError(error, 'Não foi possível criar a conta.'));
       }
     } else {
       if (!email || !password) return;
@@ -73,7 +81,7 @@ function Login() {
         const url = await login(username, password);
         if (url) navigate(typeof url === 'string' ? url : '/');
       } catch (error) {
-        setError(error.response?.data?.email?.[0] || error.response?.data?.detail || 'Usuário ou senha inválidos.');
+        setError(getApiError(error, 'Usuário ou senha inválidos.'));
       }
     }
   };
@@ -122,10 +130,11 @@ function Login() {
             label="Senha"
             type="password" 
             required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="********"
-          />
+            minLength={isRegistering ? 8 : undefined}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder={isRegistering ? 'Mínimo de 8 caracteres' : '********'}
+          />
 
           {isRegistering && (
             <div>

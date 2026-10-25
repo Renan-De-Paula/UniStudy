@@ -13,7 +13,7 @@ def seed():
     if not User.objects.filter(username='prof_alan').exists():
         prof = User.objects.create_user(
             username='prof_alan', password='123', email='alan@uni.edu',
-            role=UserRole.PROFESSOR, is_mentor=True, xp=1000
+            role=UserRole.PROFESSOR, is_mentor=True, xp=1000, is_email_verified=True
         )
         print("Professor Alan criado.")
     else:
@@ -22,7 +22,7 @@ def seed():
     if not User.objects.filter(username='aluno_joao').exists():
         aluno = User.objects.create_user(
             username='aluno_joao', password='123', email='joao@uni.edu',
-            role=UserRole.STUDENT, course='Engenharia de Software', semester=3, xp=50
+            role=UserRole.STUDENT, course='Engenharia de Software', semester=3, xp=50, is_email_verified=True
         )
         print("Aluno João criado.")
     else:

@@ -7,9 +7,26 @@ import {
 } from 'lucide-react';
 
 function Perfil() {
-  const { currentUser } = useAuth();
+  const { currentUser, updateCurrentUser } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
   const [trilhas, setTrilhas] = useState([]);
+  const [profileForm, setProfileForm] = useState({
+    first_name: '',
+    last_name: '',
+    bio: '',
+    avatar: '',
+  });
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [profileMessage, setProfileMessage] = useState('');
+
+  useEffect(() => {
+    setProfileForm({
+      first_name: currentUser?.first_name || currentUser?.name || '',
+      last_name: currentUser?.last_name || '',
+      bio: currentUser?.bio || '',
+      avatar: currentUser?.avatar || '',
+    });
+  }, [currentUser]);
 
   useEffect(() => {
     async function loadTrilhas() {
@@ -23,13 +40,33 @@ function Perfil() {
     loadTrilhas();
   }, []);
 
+  const handleProfileChange = (event) => {
+    setProfileForm({ ...profileForm, [event.target.name]: event.target.value });
+  };
+
+  const handleProfileSubmit = async (event) => {
+    event.preventDefault();
+    setSavingProfile(true);
+    setProfileMessage('');
+    try {
+      const response = await api.patch('/auth/me/', profileForm);
+      updateCurrentUser(response.data);
+      setProfileMessage('Perfil atualizado com sucesso.');
+      setActiveTab('overview');
+    } catch (error) {
+      setProfileMessage(error.response?.data?.detail || 'Não foi possível salvar o perfil.');
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
   const userStats = {
     apostilasLidas: 12,
     apostilasCriadas: 4,
     duvidasResolvidas: 28,
     diasOfensiva: 14,
     title: 'Desenvolvedor Pleno',
-    bio: 'Apaixonado por tecnologia e educação. Estudante de Engenharia de Software focando em ecossistema React e Node.js.',
+    bio: currentUser?.bio || 'Apaixonado por tecnologia e educação. Estudante de Engenharia de Software focando em ecossistema React e Node.js.',
     joinDate: 'Janeiro de 2026',
     location: 'São Paulo, Brasil'
   };
@@ -132,7 +169,7 @@ function Perfil() {
         {/* INFOS BÁSICAS */}
         <div className="flex-1 mb-2">
           <div className="flex items-center gap-3">
-            <h1 className="text-3xl md:text-4xl font-black text-white drop-shadow-md">{currentUser?.name || 'Aluno'}</h1>
+            <h1 className="text-3xl md:text-4xl font-black text-white drop-shadow-md">{currentUser?.first_name || currentUser?.name || 'Aluno'}</h1>
             <span className="bg-white/20 border border-white/40 text-white font-bold text-xs px-2 py-0.5 rounded-full flex items-center gap-1 backdrop-blur-md drop-shadow-sm">
               <Shield size={12} /> Nível {Math.floor((currentUser?.xp || 0)/100) + 1}
             </span>
@@ -235,26 +272,27 @@ function Perfil() {
             <div className="w-full bg-slate-800/50 p-6 md:p-8 rounded-xl border border-slate-700/50 max-w-3xl mx-auto">
               <h2 className="text-2xl font-black text-white mb-6 border-b border-slate-700 pb-4">Configurações do Perfil</h2>
               
-              <form className="space-y-6" onSubmit={(e) => { e.preventDefault(); setActiveTab('overview'); }}>
+              <form className="space-y-6" onSubmit={handleProfileSubmit}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Nome de Exibição</label>
-                    <input type="text" className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:border-primary outline-none" defaultValue={currentUser?.name || ''} />
+                    <input name="first_name" type="text" value={profileForm.first_name} onChange={handleProfileChange} className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:border-primary outline-none" />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Título de Perfil</label>
-                    <input type="text" className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:border-primary outline-none" defaultValue={userStats.title} />
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Sobrenome</label>
+                    <input name="last_name" type="text" value={profileForm.last_name} onChange={handleProfileChange} className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:border-primary outline-none" />
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Biografia (Sobre mim)</label>
-                  <textarea className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:border-primary outline-none h-32 resize-none" defaultValue={userStats.bio}></textarea>
+                  <textarea name="bio" value={profileForm.bio} onChange={handleProfileChange} className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:border-primary outline-none h-32 resize-none"></textarea>
                 </div>
 
+                {profileMessage && <p className={profileMessage.includes('sucesso') ? 'text-emerald-400' : 'text-red-400'}>{profileMessage}</p>}
                 <div className="pt-4 border-t border-slate-700 flex justify-end gap-3">
                   <button type="button" onClick={() => setActiveTab('overview')} className="px-6 py-2.5 rounded-lg font-bold text-slate-300 hover:text-white hover:bg-slate-700 transition-colors">Cancelar</button>
-                  <button type="submit" className="px-6 py-2.5 rounded-lg font-bold text-white bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all">Salvar Alterações</button>
+                  <button disabled={savingProfile} type="submit" className="px-6 py-2.5 rounded-lg font-bold text-white bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all">{savingProfile ? 'Salvando...' : 'Salvar Alterações'}</button>
                 </div>
               </form>
             </div>
