@@ -10,6 +10,8 @@ import {
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+
+import api from '../services/api';
 
 function CriarApostila() {
   const [view, setView] = useState('hub'); // 'hub', 'editor', 'reader'
@@ -17,6 +19,8 @@ function CriarApostila() {
   const [activeApostilaTitle, setActiveApostilaTitle] = useState('');
   const [markdownContent, setMarkdownContent] = useState('');
   const [loadingMarkdown, setLoadingMarkdown] = useState(false);
+
+  const [materiais, setMateriais] = useState([]);
 
   const loadApostila = async (path, title) => {
     setActiveApostilaPath(path);
@@ -38,12 +42,32 @@ function CriarApostila() {
       setLoadingMarkdown(false);
     }
   };
+
+
+
+  useEffect(() => {
+
+    api.get('/repository/materials/')
+
+      .then(response => setMateriais(response.data))
+
+      .catch(() => setMateriais([]));
+
+  }, []);
 
   // Mocks atualizados para apontar para as pastas extraídas
-  const apostilasCriadas = [
+  const apostilasCriadas = materiais.map(material => ({
+
+    id: material.id, title: material.title, lastEdited: new Date(material.created_at).toLocaleDateString('pt-BR'),
+
+    views: 0, likes: 0, status: 'Publicada', material
+
+  }));
+
+  const apostilasLegadas = [
     { id: 1, title: 'Lógica de Programação (Notion)', lastEdited: 'Hoje', views: 120, likes: 45, status: 'Publicada', path: 'logica' },
     { id: 2, title: 'Programação Java (Notion)', lastEdited: 'Ontem', views: 80, likes: 30, status: 'Publicada', path: 'java' },
-  ];
+  ];
 
   const apostilasLendo = [
     { id: 3, title: 'Programação Python (Notion)', author: 'Sistema', progress: 0, lastRead: 'Novo', path: 'python' },
@@ -74,8 +98,9 @@ function CriarApostila() {
           <Edit3 className="text-purple-400" size={20} /> Criadas por Mim (Extraídas)
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {apostilasCriadas.map(ap => (
-            <div key={ap.id} onClick={() => loadApostila(ap.path, ap.title)} className="bg-slate-800 border border-slate-700 p-5 rounded-xl hover:border-primary transition-colors cursor-pointer group">
+          {apostilasCriadas.map(ap => (
+
+            <div key={ap.id} onClick={() => { setActiveApostilaTitle(ap.title); setMarkdownContent(ap.material.content_html || ''); setView('reader'); }} className="bg-slate-800 border border-slate-700 p-5 rounded-xl hover:border-primary transition-colors cursor-pointer group">
               <div className="flex justify-between items-start mb-3">
                 <div className={`text-xs font-bold px-2 py-1 rounded ${ap.status === 'Publicada' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}`}>
                   {ap.status}
@@ -91,7 +116,17 @@ function CriarApostila() {
                 <span className="flex items-center gap-1 text-red-400/80">❤ {ap.likes}</span>
               </div>
             </div>
-          ))}
+          ))}
+
+          {apostilasCriadas.length === 0 && apostilasLegadas.map(ap => (
+
+            <div key={ap.id} onClick={() => loadApostila(ap.path, ap.title)} className="bg-slate-800 border border-slate-700 p-5 rounded-xl hover:border-primary transition-colors cursor-pointer group">
+
+              <h4 className="font-bold text-lg text-white mb-1">{ap.title}</h4><p className="text-xs text-slate-400">Material de exemplo</p>
+
+            </div>
+
+          ))}
         </div>
       </div>
 
@@ -207,7 +242,19 @@ function CriarApostila() {
             <span>Apostilas / Novo Rascunho</span>
           </div>
         </div>
-        <button className="bg-primary hover:bg-accent text-white px-4 py-1.5 rounded-md text-sm font-bold shadow-lg shadow-primary/20">
+        <button onClick={async () => {
+
+          const content = editorRef.current?.innerHTML || '';
+
+          if (!title.trim() || !content.trim()) return;
+
+          await api.post('/repository/materials/', { title, material_type: 'HANDOUT', privacy: 'PUBLIC', content_html: content });
+
+          const response = await api.get('/repository/materials/');
+
+          setMateriais(response.data); setView('hub'); setSaveStatus('Publicado');
+
+        }} className="bg-primary hover:bg-accent text-white px-4 py-1.5 rounded-md text-sm font-bold shadow-lg shadow-primary/20">
           Publicar
         </button>
       </div>

@@ -7,4 +7,6 @@ urlpatterns = [
     path('api/auth/', include('accounts.urls')),
     path('api/gamification/', include('gamification.urls')),
     path('api/trilha_ia/', include('trilha_ia.urls')),
+    path('api/community/', include('community.urls')),
+    path('api/squads/', include('squads.urls')),
 ]

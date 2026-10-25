@@ -1,14 +1,22 @@
-﻿import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Users, Sparkles, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import api from '../services/api';
 
 function RecomendacaoGuilda({ trilhas, setActiveTab }) {
   const navigate = useNavigate();
+  const [guilda, setGuilda] = useState(null);
+  useEffect(() => {
+    if (!trilhas || trilhas.length === 0) return;
+    api.get('/squads/recommended/')
+      .then(response => setGuilda(response.data))
+      .catch(() => setGuilda(null));
+  }, [trilhas]);
   if (!trilhas || trilhas.length === 0) return null;
   
   // Pega a trilha mais recente para sugerir a guilda
   const trilhaRecente = trilhas[0];
-  const tema = trilhaRecente.titulo.split(' ').slice(-2).join(' ') || trilhaRecente.titulo;
+  const tema = guilda?.name || trilhaRecente.titulo;
 
   return (
     <div className="bg-gradient-to-r from-primary/20 to-accent/20 border border-primary/30 rounded-2xl p-6 mb-8 relative overflow-hidden">
@@ -26,12 +34,12 @@ function RecomendacaoGuilda({ trilhas, setActiveTab }) {
           </h3>
           <p className="text-slate-300 max-w-xl">
             A Inteligência Artificial identificou que você está focado em <strong>{trilhaRecente.titulo}</strong>. 
-            Existem atualmente <span className="font-bold text-white">7 alunos</span> da sua faculdade estudando o mesmo assunto agora. 
+            {guilda ? <><span className="font-bold text-white">{guilda.membersCount} alunos</span> já estão nesta guilda.</> : 'A guilda recomendada está sendo preparada.'}
             Junte-se a eles para tirar dúvidas, compartilhar resumos e estudar em grupo!
           </p>
         </div>
         <button 
-          onClick={() => setActiveTab('guildas')}
+          onClick={() => { setActiveTab('guildas'); navigate('/'); }}
           className="whitespace-nowrap bg-primary hover:bg-primary/80 text-white px-6 py-4 rounded-xl font-bold transition-all flex items-center gap-2 shadow-lg shadow-primary/30 hover:scale-105"
         >
           Entrar na Guilda

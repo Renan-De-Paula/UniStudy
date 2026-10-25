@@ -4,6 +4,7 @@ from django.db.models import Q
 from .models import Material, MaterialComment, PrivacyOptions
 from .serializers import MaterialSerializer, MaterialCommentSerializer
 from accounts.models import Friendship, FriendshipStatus
+from community.models import Discipline
 
 class IsOwnerOrReadOnly(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
@@ -32,7 +33,13 @@ class MaterialViewSet(viewsets.ModelViewSet):
         ).order_by('-created_at')
 
     def perform_create(self, serializer):
-        serializer.save(uploaded_by=self.request.user)
+        discipline = serializer.validated_data.get('discipline')
+        if discipline is None:
+            discipline, _ = Discipline.objects.get_or_create(
+                code='GERAL',
+                defaults={'name': 'Geral', 'course': 'Geral', 'semester': 1},
+            )
+        serializer.save(uploaded_by=self.request.user, discipline=discipline)
 
 class MaterialCommentViewSet(viewsets.ModelViewSet):
     queryset = MaterialComment.objects.all().order_by('created_at')
