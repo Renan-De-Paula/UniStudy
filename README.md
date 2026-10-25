@@ -72,5 +72,10 @@ Este projeto está estruturado para rodar gratuitamente na web:
 - Frontend otimizado para a **Vercel** (`VITE_API_URL` como variável de ambiente).
 - Backend otimizado para o **Render.com** com script de build (`build.sh`) e banco de dados externo (PostgreSQL via **Neon.tech** ou **Supabase**).
 
+## 📚 Documentação complementar
+
+Para entender em mais detalhes o funcionamento das trilhas personalizadas por
+IA, consulte o arquivo [outrasinfs.md](./outrasinfs.md).
+
 ---
 *Desenvolvido com dedicação para a melhoria do ecossistema acadêmico.*
