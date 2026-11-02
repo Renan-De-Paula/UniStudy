@@ -69,8 +69,13 @@ function Home() {
   useEffect(() => {
     const fetchPendingFriends = async () => {
       try {
-        const res = await api.get('/accounts/friendships/requests/');
-        setPendingFriendsCount(res.data?.pending_count || 0);
+        const [reqRes, chatRes] = await Promise.all([
+          api.get('/accounts/friendships/requests/'),
+          api.get('/chat/messages/unread_count/')
+        ]);
+        const requests = reqRes.data?.pending_count || 0;
+        const unread = chatRes.data?.unread_count || 0;
+        setPendingFriendsCount(requests + unread);
       } catch {}
     };
     if (currentUser) {

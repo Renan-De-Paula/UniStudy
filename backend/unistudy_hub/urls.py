@@ -128,5 +128,6 @@ urlpatterns = [
     path('api/squads/', include('squads.urls')),
     path('api/repository/', include('repository.urls')),
     path('api/gamification/', include('gamification.urls')),
+    path('api/chat/', include('chat.urls')),
     path('api/trilha_ia/', include('trilha_ia.urls')),
 ]
