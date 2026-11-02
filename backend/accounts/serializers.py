@@ -104,14 +104,51 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 class VerifyEmailSerializer(serializers.Serializer):
     token = serializers.CharField(max_length=64, required=True)
 
+class FriendProfileSerializer(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField()
+    level = serializers.SerializerMethodField()
+    avatar = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'email', 'name', 'avatar', 'role', 'course', 'semester', 'xp', 'level', 'bio')
+
+    def get_name(self, obj):
+        full = f"{obj.first_name} {obj.last_name}".strip()
+        return full if full else obj.username
+
+    def get_level(self, obj):
+        return (obj.xp // 100) + 1
+
+    def get_avatar(self, obj):
+        return obj.avatar or f"https://api.dicebear.com/7.x/adventurer/svg?seed={obj.username}"
+
 class FriendshipSerializer(serializers.ModelSerializer):
-    requester_username = serializers.ReadOnlyField(source='requester.username')
-    receiver_username = serializers.ReadOnlyField(source='receiver.username')
+    requester_details = FriendProfileSerializer(source='requester', read_only=True)
+    receiver_details = FriendProfileSerializer(source='receiver', read_only=True)
+    friend = serializers.SerializerMethodField()
+    is_incoming = serializers.SerializerMethodField()
 
     class Meta:
         model = Friendship
-        fields = ['id', 'requester', 'requester_username', 'receiver', 'receiver_username', 'status', 'created_at']
-        read_only_fields = ['id', 'requester', 'status', 'created_at']
+        fields = [
+            'id', 'requester', 'receiver', 'requester_details', 'receiver_details', 
+            'friend', 'is_incoming', 'status', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['id', 'requester', 'status', 'created_at', 'updated_at']
+
+    def get_friend(self, obj):
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return FriendProfileSerializer(obj.receiver).data
+        other = obj.receiver if obj.requester == request.user else obj.requester
+        return FriendProfileSerializer(other).data
+
+    def get_is_incoming(self, obj):
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return False
+        return obj.receiver == request.user
 
 class TeacherVerificationRequestSerializer(serializers.ModelSerializer):
     username = serializers.ReadOnlyField(source='user.username')

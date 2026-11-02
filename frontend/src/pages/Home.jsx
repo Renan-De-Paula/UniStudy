@@ -1,19 +1,8 @@
-import React, { useState } from 'react';
-
-
-
-
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-
-
-
-
 import { useTheme } from '../contexts/ThemeContext';
-
-
-
-
-import { X, Menu, ChevronDown, ChevronUp, Home as HomeIcon, BookOpen, MessageSquare, Users, Award, GraduationCap, Sun, Moon, LogOut, User, Brain, Shield } from 'lucide-react';
+import api from '../services/api';
+import { X, Menu, ChevronDown, ChevronUp, Home as HomeIcon, BookOpen, MessageSquare, Users, Award, GraduationCap, Sun, Moon, LogOut, User, Brain, Shield, UserCheck } from 'lucide-react';
 
 import AvatarWithFrame from '../components/AvatarWithFrame';
 import logo from '../img/logo.png';
@@ -48,6 +37,7 @@ import Perfil from './Perfil';
 
 import Quiz from './Quiz';
 import Conquistas from './Conquistas';
+import Amigos from './Amigos';
 
 
 
@@ -72,8 +62,23 @@ function Home() {
   const [activeTab, setActiveTab] = useState('home');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [pendingFriendsCount, setPendingFriendsCount] = useState(0);
   const { currentUser, logout } = useAuth();
   const { isDarkMode, toggleTheme } = useTheme();
+
+  useEffect(() => {
+    const fetchPendingFriends = async () => {
+      try {
+        const res = await api.get('/accounts/friendships/requests/');
+        setPendingFriendsCount(res.data?.pending_count || 0);
+      } catch {}
+    };
+    if (currentUser) {
+      fetchPendingFriends();
+      const interval = setInterval(fetchPendingFriends, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [currentUser]);
 
 
 
@@ -90,25 +95,10 @@ function Home() {
 
     { id: 'home', label: 'Início', icon: <HomeIcon size={22} /> },
     { id: 'foco', label: 'Sala de Foco', icon: <Brain size={22} /> },
-
-
-
-
+    { id: 'amigos', label: 'Amigos & Chat', icon: <UserCheck size={22} />, badge: pendingFriendsCount > 0 ? pendingFriendsCount : null },
     { id: 'apostilas', label: 'Apostilas', icon: <BookOpen size={22} /> },
-
-
-
-
     { id: 'forum', label: 'Fórum de Dúvidas', icon: <MessageSquare size={22} /> },
-
-
-
-
     { id: 'guildas', label: 'Guildas de Estudo', icon: <Users size={22} /> },
-
-
-
-
     { id: 'quizzes', label: 'Quizzes & Desafios', icon: <Brain size={22} /> },
     { id: 'cursos', label: 'Cursos Recomendados', icon: <GraduationCap size={22} /> },
     { id: 'conquistas', label: 'Conquistas & Loja', icon: <Award size={22} /> },
@@ -203,10 +193,17 @@ function Home() {
                         setActiveTab(item.id);
                         setMobileMenuOpen(false);
                       }}
-                      className={`flex items-center gap-3.5 px-3.5 py-3 rounded-xl font-semibold text-sm transition-all ${isActive ? 'bg-primary text-white shadow-md shadow-primary/30' : 'text-slate-300 hover:bg-slate-800 hover:text-white'}`}
+                      className={`flex items-center justify-between px-3.5 py-3 rounded-xl font-semibold text-sm transition-all ${isActive ? 'bg-primary text-white shadow-md shadow-primary/30' : 'text-slate-300 hover:bg-slate-800 hover:text-white'}`}
                     >
-                      {item.icon}
-                      <span>{item.label}</span>
+                      <div className="flex items-center gap-3.5">
+                        {item.icon}
+                        <span>{item.label}</span>
+                      </div>
+                      {item.badge && (
+                        <span className="bg-amber-500 text-slate-950 font-black text-[10px] px-2 py-0.5 rounded-full">
+                          {item.badge}
+                        </span>
+                      )}
                     </button>
                   );
                 })}
@@ -350,36 +347,24 @@ function Home() {
 
 
 
-                <div className={`${isActive ? 'scale-110 drop-shadow-[0_0_8px_rgba(109,40,217,0.5)]' : 'group-hover:scale-110'} transition-transform duration-300`}>
-
-
-
-
-                  {item.icon}
-
-
-
-
+                <div className="relative">
+                  <div className={`${isActive ? 'scale-110 drop-shadow-[0_0_8px_rgba(109,40,217,0.5)]' : 'group-hover:scale-110'} transition-transform duration-300`}>
+                    {item.icon}
+                  </div>
+                  {item.badge && (
+                    <span className="absolute -top-1.5 -right-2 bg-amber-500 text-slate-950 text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center animate-pulse shadow-md">
+                      {item.badge}
+                    </span>
+                  )}
                 </div>
 
-
-
-
-                
-
-
-
-
-                <span className={`font-semibold hidden lg:block ${isActive ? 'text-white' : ''}`}>
-
-
-
-
-                  {item.label}
-
-
-
-
+                <span className={`font-semibold hidden lg:flex items-center justify-between flex-1 ${isActive ? 'text-white' : ''}`}>
+                  <span>{item.label}</span>
+                  {item.badge && (
+                    <span className="bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-black px-1.5 py-0.2 rounded-full">
+                      {item.badge}
+                    </span>
+                  )}
                 </span>
 
 
@@ -657,11 +642,10 @@ function Home() {
 
 
 
+          {/* TAB: AMIGOS */}
+          {activeTab === 'amigos' && <Amigos />}
+
           {/* TAB: PERFIL */}
-
-
-
-
           {activeTab === 'perfil' && <Perfil />}
 
 
