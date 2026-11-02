@@ -1,4 +1,4 @@
-﻿import os
+import os
 import json
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -27,6 +27,41 @@ class TrilhaSchema(BaseModel):
     description: str
     modulos: list[ModuloSchema]
 
+def generate_fallback_trilha(area, nivel, objetivo, vaga_texto=""):
+    titulo = f"Trilha de {area}: Do {nivel} ao Avançado" if not vaga_texto else f"Trilha Direcionada: {area}"
+    return {
+        "title": titulo,
+        "description": f"Plano de estudos intensivo para {area}. Objetivo: {objetivo}. Nível inicial: {nivel}.",
+        "modulos": [
+            {
+                "title": f"Módulo 1: Fundamentos e Base Teórica em {area}",
+                "description": "Conceitos fundamentais, terminologia técnica, boas práticas e preparação de ambiente.",
+                "topicos": [
+                    {"title": f"Introdução aos Conceitos Chave de {area}", "content_summary": "Visão geral, terminologias essenciais e ferramentas de trabalho."},
+                    {"title": "Estruturas Lógicas e Práticas Iniciais", "content_summary": "Desenvolvimento do raciocínio analítico aplicado à área."},
+                    {"title": "Primeiro Projeto Prático Integrador", "content_summary": "Construção de um exercício prático consolidando o aprendizado da base."}
+                ]
+            },
+            {
+                "title": f"Módulo 2: Técnicas Avançadas e Arquitetura",
+                "description": "Padrões de projeto, modularização, integração com dados e desenvolvimento aprofundado.",
+                "topicos": [
+                    {"title": "Integração e Manipulação de Dados", "content_summary": "Trabalho com fontes externas de dados, persistência e APIs."},
+                    {"title": "Arquitetura Limpa e Padrões de Projeto", "content_summary": "Boas práticas de código, modularidade e manutenibilidade."},
+                    {"title": "Testes, Qualidade e Resolução de Problemas", "content_summary": "Metodologias de validação, tratamento de erros e depuração."}
+                ]
+            },
+            {
+                "title": f"Módulo 3: Especialização para o Mercado",
+                "description": "Requisitos mercadológicos, otimização de performance, portfólio e publicação.",
+                "topicos": [
+                    {"title": "Otimização, Performance e Boas Práticas", "content_summary": "Melhorias de desempenho, segurança e boas práticas de entrega."},
+                    {"title": "Projeto Final de Portfólio", "content_summary": "Desenvolvimento de uma solução completa pronta para apresentação profissional."}
+                ]
+            }
+        ]
+    }
+
 class GenerateTrilhaView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
@@ -39,45 +74,51 @@ class GenerateTrilhaView(APIView):
         objetivo = data.get('objetivo', 'Aprender do zero')
         vaga_texto = data.get('vaga_texto', '')
 
-        client = genai.Client(api_key=os.getenv("GEMINI_API_KEY", "SUA_CHAVE_AQUI"))
-        
-        if vaga_texto:
-            prompt = f"""
-            Atue como um recrutador técnico e tutor acadêmico. Crie uma trilha de estudos personalizada em JSON estruturado para aprovação na seguinte vaga de emprego:
-            
-            VAGA:
-            '{vaga_texto}'
-            
-            Nível atual do aluno: {nivel}.
-            Disponibilidade: {horas_dia} por dia.
-            
-            Analise as habilidades exigidas pela vaga e gere a trilha exatamente no que ele precisa aprender para ser contratado.
-            Retorne exatamente 3 módulos progressivos. Cada módulo deve ter 2 a 3 tópicos extremamente práticos voltados para o mercado.
-            """
-        else:
-            prompt = f"""
-            Atue como um tutor acadêmico especialista. Crie uma trilha de estudos personalizada em JSON estruturado.
-            O aluno quer estudar: {area}.
-            Nível atual: {nivel}.
-            Disponibilidade: {horas_dia} por dia.
-            Objetivo principal: {objetivo}.
-            
-            Retorne exatamente 3 módulos. Cada módulo deve ter 2 a 3 tópicos.
-            """
+        gemini_key = os.getenv("GEMINI_API_KEY")
+        trilha_data = None
 
-        try:
-            response = client.models.generate_content(
-                model='gemini-3.5-flash',
-                contents=prompt,
-                config=genai.types.GenerateContentConfig(
-                    response_mime_type="application/json",
-                    response_schema=TrilhaSchema,
-                    temperature=0.7
+        if gemini_key and gemini_key != "SUA_CHAVE_AQUI":
+            if vaga_texto:
+                prompt = f"""
+                Atue como um recrutador técnico e tutor acadêmico. Crie uma trilha de estudos personalizada em JSON estruturado para aprovação na seguinte vaga de emprego:
+                
+                VAGA:
+                '{vaga_texto}'
+                
+                Nível atual do aluno: {nivel}.
+                Disponibilidade: {horas_dia} por dia.
+                
+                Analise as habilidades exigidas pela vaga e gere a trilha exatamente no que ele precisa aprender para ser contratado.
+                Retorne exatamente 3 módulos progressivos. Cada módulo deve ter 2 a 3 tópicos extremamente práticos voltados para o mercado.
+                """
+            else:
+                prompt = f"""
+                Atue como um tutor acadêmico especialista. Crie uma trilha de estudos personalizada em JSON estruturado.
+                O aluno quer estudar: {area}.
+                Nível atual: {nivel}.
+                Disponibilidade: {horas_dia} por dia.
+                Objetivo principal: {objetivo}.
+                
+                Retorne exatamente 3 módulos. Cada módulo deve ter 2 a 3 tópicos.
+                """
+
+            try:
+                client = genai.Client(api_key=gemini_key)
+                response = client.models.generate_content(
+                    model='gemini-2.5-flash',
+                    contents=prompt,
+                    config=genai.types.GenerateContentConfig(
+                        response_mime_type="application/json",
+                        response_schema=TrilhaSchema,
+                        temperature=0.7
+                    )
                 )
-            )
-            trilha_data = json.loads(response.text)
-        except Exception as e:
-            return Response({"error": f"Erro ao gerar trilha na IA: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                trilha_data = json.loads(response.text)
+            except Exception as e:
+                print(f"[TrilhaIA] Erro na API do Gemini: {e}. Acionando gerador inteligente de contingência.")
+
+        if not trilha_data:
+            trilha_data = generate_fallback_trilha(area, nivel, objetivo, vaga_texto)
 
         trilha = Trilha.objects.create(
             user=request.user,
@@ -96,7 +137,13 @@ class TrilhaListView(APIView):
 
     def get(self, request):
         trilhas = Trilha.objects.filter(user=request.user).order_by('-criado_em')
-        data = [{'id': t.id, 'titulo': t.titulo, 'criado_em': t.criado_em, 'conteudo_gerado': t.conteudo_gerado, 'topicos_concluidos': t.topicos_concluidos} for t in trilhas]
+        data = [{
+            'id': t.id, 
+            'titulo': t.titulo, 
+            'criado_em': t.criado_em, 
+            'conteudo_gerado': t.conteudo_gerado, 
+            'topicos_concluidos': t.topicos_concluidos
+        } for t in trilhas]
         return Response(data)
 
 class ToggleTopicoView(APIView):
@@ -112,16 +159,20 @@ class ToggleTopicoView(APIView):
                 
             if topico_title in trilha.topicos_concluidos:
                 trilha.topicos_concluidos.remove(topico_title)
-                # Opcional: remover XP (request.user.xp -= 10) se quiser ser punitivo, mas vamos deixar s na adio
                 concluido = False
             else:
                 trilha.topicos_concluidos.append(topico_title)
                 request.user.xp += 10
-                request.user.save()
+                request.user.save(update_fields=['xp'])
                 concluido = True
                 
             trilha.save()
             
-            return Response({"message": "Tpico atualizado", "concluido": concluido, "topicos_concluidos": trilha.topicos_concluidos, "new_xp": request.user.xp}, status=status.HTTP_200_OK)
+            return Response({
+                "message": "Tópico atualizado", 
+                "concluido": concluido, 
+                "topicos_concluidos": trilha.topicos_concluidos, 
+                "new_xp": request.user.xp
+            }, status=status.HTTP_200_OK)
         except Trilha.DoesNotExist:
-            return Response({"error": "Trilha no encontrada"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Trilha não encontrada"}, status=status.HTTP_404_NOT_FOUND)

@@ -3,18 +3,32 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 const ThemeContext = createContext();
 
 export function ThemeProvider({ children }) {
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    try {
+      const saved = localStorage.getItem('unistudy_theme');
+      if (saved) return saved === 'dark';
+    } catch {
+      // fallback
+    }
+    return true;
+  });
 
   useEffect(() => {
-    if (isDarkMode) {
-      document.body.classList.remove('light-theme');
-    } else {
-      document.body.classList.add('light-theme');
+    try {
+      if (isDarkMode) {
+        document.body.classList.remove('light-theme');
+        localStorage.setItem('unistudy_theme', 'dark');
+      } else {
+        document.body.classList.add('light-theme');
+        localStorage.setItem('unistudy_theme', 'light');
+      }
+    } catch {
+      // fallback
     }
   }, [isDarkMode]);
 
   const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode);
+    setIsDarkMode(prev => !prev);
   };
 
   return (

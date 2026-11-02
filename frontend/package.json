@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "test": "vitest run",
     "lint": "oxlint",
     "preview": "vite preview"
   },
@@ -17,6 +18,7 @@
     "dompurify": "^3.4.14",
     "lucide-react": "^1.35.0",
     "postcss": "^8.5.26",
+    "prismjs": "^1.30.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-markdown": "^10.1.0",

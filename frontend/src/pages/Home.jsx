@@ -13,8 +13,9 @@ import { useTheme } from '../contexts/ThemeContext';
 
 
 
-import { X, Home as HomeIcon, BookOpen, MessageSquare, Users, Award, GraduationCap, Sun, Moon, LogOut, User, Brain } from 'lucide-react';
+import { X, Menu, ChevronDown, ChevronUp, Home as HomeIcon, BookOpen, MessageSquare, Users, Award, GraduationCap, Sun, Moon, LogOut, User, Brain, Shield } from 'lucide-react';
 
+import AvatarWithFrame from '../components/AvatarWithFrame';
 import logo from '../img/logo.png';
 
 
@@ -46,6 +47,7 @@ import Perfil from './Perfil';
 
 
 import Quiz from './Quiz';
+import Conquistas from './Conquistas';
 
 
 
@@ -67,20 +69,10 @@ import SalaFoco from '../components/SalaFoco';
 
 
 function Home() {
-
-
-
-
   const [activeTab, setActiveTab] = useState('home');
-
-
-
-
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const { currentUser, logout } = useAuth();
-
-
-
-
   const { isDarkMode, toggleTheme } = useTheme();
 
 
@@ -118,11 +110,8 @@ function Home() {
 
 
     { id: 'quizzes', label: 'Quizzes & Desafios', icon: <Brain size={22} /> },
-
-
-
-
     { id: 'cursos', label: 'Cursos Recomendados', icon: <GraduationCap size={22} /> },
+    { id: 'conquistas', label: 'Conquistas & Loja', icon: <Award size={22} /> },
 ];
 
 
@@ -133,67 +122,145 @@ function Home() {
 
 
 
+
   return (
-
-
-
-
-    <div className="flex h-screen bg-dark text-slate-200 font-sans transition-colors duration-300 overflow-hidden">
-
-
-
-
+    <div className="flex flex-col md:flex-row h-screen bg-dark text-slate-200 font-sans transition-colors duration-300 overflow-hidden">
       
-
-
-
-
-      {/* Sidebar / Menu Modernão Lateral */}
-
-
-
-
-      <aside className="w-20 lg:w-72 flex-shrink-0 bg-darker/80 backdrop-blur-2xl border-r border-slate-700/50 flex flex-col justify-between transition-all duration-300 shadow-[4px_0_24px_rgba(0,0,0,0.2)] z-50">
-
-
-
-
+      {/* Mobile Top Header (100% Responsivo no Celular) */}
+      <header className="md:hidden flex items-center justify-between px-3 py-2 bg-darker/95 backdrop-blur-md border-b border-slate-700/60 z-30 shrink-0 gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <button 
+            onClick={() => setMobileMenuOpen(true)}
+            className="p-1.5 text-slate-300 hover:text-white bg-slate-800/90 border border-slate-700/80 rounded-xl active:scale-95 transition-transform shrink-0"
+            title="Abrir Menu Completo de Navegação"
+          >
+            <Menu size={18} />
+          </button>
+          <img src={logo} alt="UniStudy Hub" className="h-6 object-contain cursor-pointer shrink-0" onClick={() => setActiveTab('home')} />
+        </div>
         
+        <div className="flex items-center gap-1.5 shrink-0">
+          {activeTab !== 'home' && (
+            <button
+              onClick={() => setActiveTab('home')}
+              className="flex items-center gap-1 bg-primary/15 hover:bg-primary/25 text-primary-light border border-primary/35 py-1 px-2 rounded-lg text-xs font-bold active:scale-95 transition-all shadow-sm"
+              title="Voltar ao Início"
+            >
+              <HomeIcon size={12} />
+              <span className="hidden sm:inline">Início</span>
+            </button>
+          )}
 
+          <button 
+            onClick={() => setActiveTab('perfil')}
+            className="flex items-center gap-1.5 bg-slate-800/80 hover:bg-slate-700 border border-slate-700 py-1 px-2 rounded-full text-xs font-bold text-white transition-all shadow-sm active:scale-95 shrink-0"
+            title="Ver Perfil"
+          >
+            <AvatarWithFrame src={currentUser?.avatar} size="xs" frame={currentUser?.equipped_items?.frame} badge={currentUser?.equipped_items?.badge} showBadge={false} />
+            <span className="max-w-[70px] truncate text-[11px]">{currentUser?.first_name || currentUser?.username}</span>
+          </button>
+        </div>
+      </header>
 
+      {/* Drawer Lateral Mobile com Menu Completo e Sair da Conta */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-50 md:hidden flex">
+          <div 
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm transition-opacity" 
+            onClick={() => setMobileMenuOpen(false)}
+          />
+          <div className="relative w-72 max-w-[80vw] bg-darker border-r border-slate-700/80 h-full flex flex-col justify-between p-4 shadow-2xl z-10 animate-fade-in overflow-y-auto">
+            <div>
+              <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-700/50">
+                <img src={logo} alt="UniStudy" className="h-9 object-contain" />
+                <button 
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="p-2 text-slate-400 hover:text-white bg-slate-800/80 rounded-xl"
+                  title="Fechar Menu"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              
+              <div 
+                onClick={() => { setActiveTab('perfil'); setMobileMenuOpen(false); }}
+                className="bg-slate-800/60 p-3 rounded-xl border border-slate-700/50 mb-4 flex items-center gap-3 cursor-pointer hover:border-primary/50 transition-colors"
+              >
+                <AvatarWithFrame src={currentUser?.avatar} size="md" frame={currentUser?.equipped_items?.frame} badge={currentUser?.equipped_items?.badge} showBadge={true} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-white truncate">{currentUser?.first_name ? `${currentUser.first_name} ${currentUser.last_name || ''}` : currentUser?.username}</p>
+                  <p className="text-xs text-primary font-semibold">Nível {currentUser?.level} • {currentUser?.xp} XP</p>
+                </div>
+              </div>
 
+              <nav className="flex flex-col gap-1.5">
+                {menuItems.map((item) => {
+                  const isActive = activeTab === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        setActiveTab(item.id);
+                        setMobileMenuOpen(false);
+                      }}
+                      className={`flex items-center gap-3.5 px-3.5 py-3 rounded-xl font-semibold text-sm transition-all ${isActive ? 'bg-primary text-white shadow-md shadow-primary/30' : 'text-slate-300 hover:bg-slate-800 hover:text-white'}`}
+                    >
+                      {item.icon}
+                      <span>{item.label}</span>
+                    </button>
+                  );
+                })}
+              </nav>
+            </div>
 
+            <div className="pt-4 mt-4 border-t border-slate-700/60 flex items-center justify-between gap-2">
+              {Boolean(currentUser?.role === 'ADMIN' || currentUser?.is_staff) && (
+                <a 
+                  href="http://localhost:8001/admin/" 
+                  target="_blank" 
+                  rel="noreferrer"
+                  className="flex-1 h-10 flex items-center justify-center rounded-xl bg-purple-600/20 text-purple-300 border border-purple-500/30"
+                  title="Painel Django Admin (/admin)"
+                >
+                  <Shield size={18} />
+                </a>
+              )}
+              <button 
+                onClick={toggleTheme}
+                className="flex-1 h-10 flex items-center justify-center rounded-xl bg-slate-800 text-slate-300 hover:text-white border border-slate-700"
+                title={isDarkMode ? 'Tema Claro' : 'Tema Escuro'}
+              >
+                {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+              </button>
+
+              <button 
+                onClick={() => {
+                  if (window.confirm('Deseja realmente sair da conta?')) {
+                    logout();
+                  }
+                }}
+                className="flex-1 h-10 flex items-center justify-center rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 transition-colors"
+                title="Sair da Conta"
+              >
+                <LogOut size={18} />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Sidebar Desktop (Oculto em Telas Menores que Tablet/Mobile) */}
+      <aside className="hidden md:flex w-20 lg:w-72 flex-shrink-0 bg-darker/80 backdrop-blur-2xl border-r border-slate-700/50 flex flex-col justify-between transition-all duration-300 shadow-[4px_0_24px_rgba(0,0,0,0.2)] z-30 h-screen max-h-screen overflow-hidden">
+        
         {/* Logo Area */}
-
-
-
-
-        <div className="h-20 flex items-center justify-center border-b border-slate-700/50">
-
-
-
-
-          <div className="flex justify-center items-center"><img src={logo} alt="UniStudy Hub" className="h-[50px] lg:h-[70px] object-contain drop-shadow-[0_0_10px_rgba(109,40,217,0.3)]" /></div>
-
-
-
-
+        <div className="h-16 lg:h-20 shrink-0 flex items-center justify-center border-b border-slate-700/50">
+          <div className="flex justify-center items-center">
+            <img src={logo} alt="UniStudy Hub" className="h-[44px] lg:h-[64px] object-contain drop-shadow-[0_0_10px_rgba(109,40,217,0.3)]" />
+          </div>
         </div>
 
-
-
-
-
-
-
-
-
-        {/* Navigation Links */}
-
-
-
-
-        <nav className="flex-1 py-8 px-4 flex flex-col gap-2">
+        {/* Navigation Links (com rolagem suave se a tela for baixa) */}
+        <nav className="flex-1 min-h-0 py-3 px-3 flex flex-col gap-1.5 overflow-y-auto overflow-x-hidden">
 
 
 
@@ -344,260 +411,86 @@ function Home() {
 
 
         {/* User Profile & Actions Footer */}
+        <div className="shrink-0 p-3 pb-3 border-t border-slate-700/50 bg-slate-800/30">
+          <div className="flex flex-col gap-2">
 
+            {/* Ações Rápidas: Admin, Tema e Sair (Aparece como Dropup ACIMA do Card de Perfil) */}
+            {showUserMenu && (
+              <div className="flex items-center justify-between gap-1.5 p-1.5 bg-slate-900/95 border border-slate-700/80 rounded-xl shadow-2xl animate-fade-in backdrop-blur-md">
+                {Boolean(currentUser?.role === 'ADMIN' || currentUser?.is_staff) && (
+                  <a 
+                    href="http://localhost:8001/admin/" 
+                    target="_blank" 
+                    rel="noreferrer"
+                    className="flex-1 h-9 flex items-center justify-center rounded-lg bg-purple-600/20 hover:bg-purple-600/35 text-purple-300 border border-purple-500/30 transition-all shadow-sm active:scale-95"
+                    title="Painel Django Admin (/admin)"
+                  >
+                    <Shield size={16} />
+                  </a>
+                )}
 
+                <button 
+                  onClick={toggleTheme}
+                  className="flex-1 h-9 flex items-center justify-center rounded-lg bg-slate-700/30 hover:bg-slate-700/80 text-slate-300 hover:text-white transition-all border border-slate-600/30 active:scale-95"
+                  title={isDarkMode ? 'Mudar para Tema Claro' : 'Mudar para Tema Escuro'}
+                >
+                  {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
+                </button>
 
+                <button 
+                  onClick={() => {
+                    if (window.confirm('Deseja realmente sair da sua conta?')) {
+                      logout();
+                    }
+                  }}
+                  className="flex-1 h-9 flex items-center justify-center rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 transition-all border border-red-500/30 active:scale-95"
+                  title="Sair da Conta (Logout)"
+                >
+                  <LogOut size={16} />
+                </button>
+              </div>
+            )}
 
-        <div className="p-4 border-t border-slate-700/50 bg-slate-800/20">
-
-
-
-
-          
-
-
-
-
-          <div className="flex flex-col gap-4">
-
-
-
-
-            {/* Status (XP/Level) - Apenas Desktop */}
-
-
-
-
-            <div 
-
-
-
-
-              className="hidden lg:flex justify-between items-center bg-darker/50 p-3 rounded-xl border border-slate-700/50 cursor-pointer hover:border-primary/50 transition-colors"
-
-
-
-
-              onClick={() => setActiveTab('perfil')}
-
-
-
-
-              title="Acessar Meu Perfil"
-
-
-
-
-            >
-
-
-
-
-              <div>
-
-
-
-
-                <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Seu Nível</p>
-
-
-
-
-                <div className="flex items-center gap-2">
-
-
-
-
-                  <span className="text-xl font-black text-white">{currentUser?.level}</span>
-
-
-
-
-                  <span className="text-xs text-primary font-bold">{currentUser?.xp} XP</span>
-
-
-
-
+            {/* Status (XP/Level/Avatar) - Desktop Expandido (lg:w-72) */}
+            <div className="hidden lg:flex items-center justify-between bg-darker/60 p-2.5 rounded-xl border border-slate-700/60 hover:border-primary/50 transition-colors shadow-sm">
+              <div 
+                className="flex items-center gap-2.5 flex-1 min-w-0 cursor-pointer group"
+                onClick={() => setActiveTab('perfil')}
+                title="Acessar Meu Perfil"
+              >
+                <AvatarWithFrame src={currentUser?.avatar} size="sm" frame={currentUser?.equipped_items?.frame} badge={currentUser?.equipped_items?.badge} showBadge={true} />
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-white truncate group-hover:text-primary transition-colors">
+                    {currentUser?.first_name ? `${currentUser.first_name} ${currentUser.last_name || ''}`.trim() : currentUser?.username}
+                  </p>
+                  <p className="text-[11px] text-primary font-bold">Nível {currentUser?.level} • {currentUser?.xp} XP</p>
                 </div>
-
-
-
-
               </div>
 
-
-
-
-              <div className="w-10 h-10 rounded-full border-2 border-primary overflow-hidden shadow-[0_0_15px_rgba(109,40,217,0.4)]">
-
-
-
-
-                <img src={currentUser?.avatar} alt="Perfil" className="w-full h-full object-cover" />
-
-
-
-
-              </div>
-
-
-
-
+              {/* Botão de Toggle para Ações Rápidas */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowUserMenu(!showUserMenu);
+                }}
+                className={`p-1.5 rounded-lg transition-all ${showUserMenu ? 'bg-primary text-white shadow-md shadow-primary/30' : 'text-slate-400 hover:text-white hover:bg-slate-700/50'}`}
+                title={showUserMenu ? "Ocultar botões rápidos" : "Abrir botões de ação (Tema, Admin, Sair)"}
+              >
+                {showUserMenu ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
+              </button>
             </div>
 
-
-
-
-
-
-
-
-
-            {/* Avatar Mobile */}
-
-
-
-
+            {/* Avatar - Desktop Compacto (w-20) */}
             <div 
-
-
-
-
-              className="lg:hidden flex justify-center mb-2 cursor-pointer"
-
-
-
-
-              onClick={() => setActiveTab('perfil')}
-
-
-
-
-              title="Meu Perfil"
-
-
-
-
+              className="lg:hidden flex flex-col items-center gap-1 cursor-pointer"
+              onClick={() => setShowUserMenu(!showUserMenu)}
+              title="Opções de Usuário"
             >
-
-
-
-
-              <img src={currentUser?.avatar} alt="Perfil" className="w-10 h-10 rounded-full border-2 border-primary" />
-
-
-
-
+              <AvatarWithFrame src={currentUser?.avatar} size="sm" frame={currentUser?.equipped_items?.frame} badge={currentUser?.equipped_items?.badge} showBadge={true} />
             </div>
-
-
-
-
-
-
-
-
-
-            {/* Controles: Tema e Logout */}
-
-
-
-
-            <div className="flex justify-center lg:justify-between items-center gap-2">
-
-
-
-
-              <button 
-
-
-
-
-                onClick={toggleTheme}
-
-
-
-
-                className="flex-1 flex justify-center items-center gap-2 p-2.5 rounded-lg bg-slate-700/30 hover:bg-slate-700/80 text-slate-300 hover:text-white transition-all border border-slate-600/30"
-
-
-
-
-                title={isDarkMode ? 'Tema Claro' : 'Tema Escuro'}
-
-
-
-
-              >
-
-
-
-
-                {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
-
-
-
-
-                <span className="text-sm font-semibold hidden lg:block">Tema</span>
-
-
-
-
-              </button>
-
-
-
-
-              
-
-
-
-
-              <button 
-
-
-
-
-                onClick={logout}
-
-
-
-
-                className="flex justify-center items-center p-2.5 rounded-lg bg-red-500/10 hover:bg-red-500/30 text-red-400 hover:text-red-300 transition-all border border-red-500/20"
-
-
-
-
-                title="Sair"
-
-
-
-
-              >
-
-
-
-
-                <LogOut size={18} />
-
-
-
-
-              </button>
-
-
-
-
-            </div>
-
-
-
 
           </div>
-
-
-
-
         </div>
 
 
@@ -618,7 +511,7 @@ function Home() {
 
 
 
-      <main className="flex-1 h-screen overflow-y-auto p-4 md:p-8 relative">
+      <main className="flex-1 h-screen overflow-y-auto p-2 sm:p-4 md:p-8 pb-20 md:pb-8 relative">
 
 
 
@@ -649,45 +542,19 @@ function Home() {
 
 
           {activeTab !== 'home' && (
-
-
-
-
-            <button 
-
-
-
-
-              onClick={() => setActiveTab('home')} 
-
-
-
-
-              className="absolute top-0 right-0 md:top-4 md:right-4 z-50 text-slate-400 hover:text-white bg-slate-800/80 hover:bg-slate-700 p-2 rounded-full transition-all border border-slate-700 shadow-xl"
-
-
-
-
-              title="Fechar Aba"
-
-
-
-
-            >
-
-
-
-
-              <X size={24} />
-
-
-
-
-            </button>
-
-
-
-
+            <div className="hidden md:flex items-center justify-between pb-4 mb-4 border-b border-slate-800/80 animate-fade-in">
+              <button 
+                onClick={() => setActiveTab('home')} 
+                className="inline-flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-white bg-slate-800/80 hover:bg-slate-700 border border-slate-700/80 px-3.5 py-1.5 rounded-xl transition-all shadow-sm group active:scale-95"
+                title="Voltar ao Painel Início"
+              >
+                <span className="text-primary font-black group-hover:-translate-x-0.5 transition-transform">←</span>
+                <span>Voltar ao Início</span>
+              </button>
+              <span className="text-xs text-slate-500 font-semibold tracking-wider">
+                UniStudy Hub • <strong className="text-slate-400">{menuItems.find(m => m.id === activeTab)?.label || 'Seção'}</strong>
+              </span>
+            </div>
           )}
 
 
@@ -780,6 +647,7 @@ function Home() {
 
 
           {activeTab === 'cursos' && <Cursos />}
+          {activeTab === 'conquistas' && <Conquistas />}
 
 
 
@@ -800,14 +668,50 @@ function Home() {
 
 
         </div>
-
-
-
-
       </main>
 
-
-
+      {/* Mobile Bottom Navigation Bar (Fase 12: Navegação Rápida com o Polegar no Celular) */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-darker/95 backdrop-blur-xl border-t border-slate-700/80 px-1 py-1 z-40 flex items-center justify-around shadow-2xl safe-area-bottom">
+        {[
+          { id: 'home', label: 'Início', icon: <HomeIcon size={19} /> },
+          { id: 'apostilas', label: 'Apostilas', icon: <BookOpen size={19} /> },
+          { id: 'cursos', label: 'Cursos', icon: <GraduationCap size={19} /> },
+          { id: 'forum', label: 'Fórum', icon: <MessageSquare size={19} /> },
+          { id: 'perfil', label: 'Perfil', icon: <User size={19} /> },
+        ].map(navItem => {
+          const isActive = activeTab === navItem.id;
+          return (
+            <button
+              key={navItem.id}
+              onClick={() => setActiveTab(navItem.id)}
+              className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all active:scale-95 ${
+                isActive 
+                  ? 'text-primary font-bold' 
+                  : 'text-slate-400 hover:text-white font-medium'
+              }`}
+            >
+              <div className={`p-1 rounded-lg transition-colors ${isActive ? 'bg-primary/20 text-primary shadow-sm' : ''}`}>
+                {navItem.icon}
+              </div>
+              <span className={`text-[10px] mt-0.5 tracking-tight ${isActive ? 'font-bold text-white' : ''}`}>
+                {navItem.label}
+              </span>
+            </button>
+          );
+        })}
+        
+        {/* Botão "Mais" para abrir a gaveta com ferramentas secundárias */}
+        <button
+          onClick={() => setMobileMenuOpen(true)}
+          className="flex flex-col items-center justify-center py-1 px-2.5 text-slate-400 hover:text-white rounded-xl active:scale-95 transition-all"
+          title="Abrir Menu Completo (Sala de Foco, Guildas, Quizzes, Conquistas)"
+        >
+          <div className="p-1 rounded-lg">
+            <Menu size={19} />
+          </div>
+          <span className="text-[10px] mt-0.5 tracking-tight">Mais</span>
+        </button>
+      </nav>
 
     </div>
 

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, BrainCircuit, PlayCircle, CheckCircle2 } from 'lucide-react';
 import api from '../services/api';
@@ -29,14 +29,14 @@ function TrilhasDashboard({ setActiveTab }) {
 
   return (
     <div className="w-full max-w-6xl mx-auto p-4 md:p-8 animate-fade-in">
-      <div className="flex justify-between items-center mb-10">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 sm:mb-10 gap-4">
         <div>
-          <h2 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent mb-2">Meu Dashboard de Estudos</h2>
-          <p className="text-slate-400 text-lg">Continue sua jornada de aprendizado guiada por IA.</p>
+          <h2 className="text-2xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent mb-2">Meu Dashboard de Estudos</h2>
+          <p className="text-slate-400 text-sm sm:text-lg">Continue sua jornada de aprendizado guiada por IA.</p>
         </div>
         <button 
           onClick={() => navigate('/onboarding')}
-          className="bg-primary hover:bg-primary/80 text-white px-6 py-3 rounded-xl font-bold transition-all flex items-center gap-2 shadow-lg shadow-primary/20"
+          className="w-full sm:w-auto bg-primary hover:bg-primary/80 text-white px-6 py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20 shrink-0"
         >
           <Plus size={20} />
           Nova Trilha IA

@@ -1,328 +1,880 @@
-import React, { useState, useEffect } from 'react';
-import { Brain, Search, Play, CheckCircle2, XCircle, Clock, Award, ChevronRight, User, Star, ArrowLeft, HelpCircle } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
-
-const mockQuizzes = [
-  {
-    id: 1,
-    title: 'Fundamentos de Python',
-    author: 'Prof. Silva',
-    category: 'Programação',
-    difficulty: 'Iniciante',
-    xpReward: 150,
-    questions: [
-      {
-        id: 1,
-        text: 'Qual das opções abaixo é uma estrutura de repetição em Python?',
-        options: ['if', 'for', 'def', 'import'],
-        correct: 1
-      },
-      {
-        id: 2,
-        text: 'Como se define uma função em Python?',
-        options: ['function myFunc()', 'def myFunc():', 'func myFunc()', 'create myFunc()'],
-        correct: 1
-      },
-      {
-        id: 3,
-        text: 'Qual o resultado de 3 ** 2 em Python?',
-        options: ['6', '5', '9', 'Error'],
-        correct: 2
-      }
-    ]
-  },
-  {
-    id: 2,
-    title: 'Lógica de Programação Avançada',
-    author: 'Admin',
-    category: 'Lógica',
-    difficulty: 'Avançado',
-    xpReward: 300,
-    questions: [
-      {
-        id: 1,
-        text: 'O que é um algoritmo de ordenação Bubble Sort?',
-        options: ['Um algoritmo que divide o array pela metade', 'Um algoritmo que compara pares adjacentes e os troca', 'Um algoritmo de busca em grafos', 'Um método de criptografia'],
-        correct: 1
-      },
-      {
-        id: 2,
-        text: 'Qual a complexidade de tempo de busca binária não pior caso?',
-        options: ['O(1)', 'O(n)', 'O(n log n)', 'O(log n)'],
-        correct: 3
-      }
-    ]
-  },
-  {
-    id: 3,
-    title: 'Estruturas de Dados',
-    author: 'Guilherme',
-    category: 'Computação',
-    difficulty: 'Intermediário',
-    xpReward: 200,
-    questions: [
-      {
-        id: 1,
-        text: 'O que caracteriza uma Pilha (Stack)?',
-        options: ['FIFO (First In, First Out)', 'LIFO (Last In, First Out)', 'Acesso aleatório', 'Ordenação alfabética'],
-        correct: 1
-      }
-    ]
-  }
-];
-
-function Quiz() {
-  const { currentUser } = useAuth();
-  const [view, setView] = useState('hub'); // hub, player, result
-  const [activeQuiz, setActiveQuiz] = useState(null);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [selectedAnswers, setSelectedAnswers] = useState({});
-  const [score, setScore] = useState(0);
-
-  // Filtros do Hub
-  const [searchTerm, setSearchTerm] = useState('');
-
-  const startQuiz = (quiz) => {
-    setActiveQuiz(quiz);
-    setCurrentQuestionIndex(0);
-    setSelectedAnswers({});
-    setScore(0);
-    setView('player');
-  };
-
-  const handleSelectAnswer = (questionId, optionIndex) => {
-    setSelectedAnswers({ ...selectedAnswers, [questionId]: optionIndex });
-  };
-
-  const handleNextQuestion = () => {
-    if (currentQuestionIndex < activeQuiz.questions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-    } else {
-      finishQuiz();
-    }
-  };
-
-  const finishQuiz = () => {
-    let finalScore = 0;
-    activeQuiz.questions.forEach(q => {
-      if (selectedAnswers[q.id] === q.correct) {
-        finalScore += 1;
-      }
-    });
-    setScore(finalScore);
-    setView('result');
-  };
-
-  const resetToHub = () => {
-    setActiveQuiz(null);
-    setView('hub');
-  };
-
-  return (
-    <div className="h-full flex flex-col relative z-10 animate-fade-in overflow-y-auto">
-      
-      {/* -------------------- HUB VIEW -------------------- */}
-      {view === 'hub' && (
-        <div className="flex-1 flex flex-col gap-6 max-w-5xl mx-auto w-full pb-8">
-          {/* HEADER CABEÇALHO */}
-          <div className="bg-gradient-to-r from-primary to-purple-600 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden flex-shrink-0">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4"></div>
-            <div className="relative z-10">
-              <h1 className="text-3xl md:text-4xl font-black mb-2 flex items-center gap-3">
-                <Brain size={36} /> Central de Quizzes
-              </h1>
-              <p className="text-white/80 max-w-2xl text-lg">
-                Teste seus conhecimentos em desafios criados pela comunidade e por professores. Ganhe XP e suba não ranking!
-              </p>
-            </div>
-          </div>
-
-          {/* BARRA DE PESQUISA E FILTROS */}
-          <div className="flex flex-col md:flex-row gap-4 justify-between items-center bg-slate-800/50 p-4 rounded-xl border border-slate-700/50 backdrop-blur-md">
-            <div className="relative w-full md:w-96">
-              <Search className="absolute left-3 top-3 text-slate-400" size={18} />
-              <input 
-                type="text" 
-                placeholder="Buscar por tecnãologia ou autor..." 
-                className="w-full bg-slate-900 border border-slate-700 rounded-lg py-2.5 pl-10 pr-4 text-white focus:border-primary outline-none transition-colors"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
-              {['Todos', 'Programação', 'Lógica', 'Computação'].map(cat => (
-                <button key={cat} className="px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 text-sm font-semibold hover:border-primary hover:text-white transition-colors whitespace-nãowrap">
-                  {cat}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* GRID DE QUIZZES */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {mockQuizzes.filter(q => q.title.toLowerCase().includes(searchTerm.toLowerCase())).map(quiz => (
-              <div key={quiz.id} className="bg-slate-800/80 border border-slate-700 rounded-xl overflow-hidden hover:border-primary/50 transition-all hover:-translate-y-1 shadow-lg group flex flex-col">
-                <div className="p-5 flex-1">
-                  <div className="flex justify-between items-start mb-4">
-                    <span className="bg-primary/20 text-primary text-xs font-bold px-2 py-1 rounded border border-primary/20">
-                      {quiz.category}
-                    </span>
-                    <span className="flex items-center gap-1 text-xs font-bold text-amber-400 bg-amber-400/10 px-2 py-1 rounded">
-                      <Star size={12} /> {quiz.difficulty}
-                    </span>
-                  </div>
-                  <h3 className="text-xl font-bold text-white mb-2 leading-tight group-hover:text-primary transition-colors">{quiz.title}</h3>
-                  <p className="text-slate-400 text-sm flex items-center gap-2 mb-4">
-                    <User size={14} /> Criado por {quiz.author}
-                  </p>
-                  
-                  <div className="flex items-center gap-4 text-xs font-semibold text-slate-300 bg-slate-900/50 p-2.5 rounded-lg border border-slate-700/50">
-                    <span className="flex items-center gap-1.5"><HelpCircle size={14} className="text-purple-400"/> {quiz.questions.length} Questões</span>
-                    <span className="flex items-center gap-1.5"><Clock size={14} className="text-emerald-400"/> Sem limite</span>
-                  </div>
-                </div>
-                
-                <div className="border-t border-slate-700 p-4 bg-slate-900/30 flex justify-between items-center">
-                  <span className="text-primary font-bold text-sm flex items-center gap-1">
-                    <Award size={16} /> +{quiz.xpReward} XP
-                  </span>
-                  <button 
-                    onClick={() => startQuiz(quiz)}
-                    className="bg-primary hover:bg-accent text-white px-5 py-2 rounded-lg font-bold text-sm transition-colors flex items-center gap-2 shadow-[0_0_15px_rgba(109,40,217,0.3)] hover:shadow-[0_0_20px_rgba(56,189,248,0.4)]"
-                  >
-                    Iniciar <Play size={14} />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* -------------------- PLAYER VIEW -------------------- */}
-      {view === 'player' && activeQuiz && (
-        <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full h-full relative pb-8">
-          
-          {/* HEADER DO PLAYER */}
-          <div className="flex items-center justify-between mb-6 bg-slate-800/80 p-4 rounded-xl border border-slate-700 shadow-md">
-            <button onClick={resetToHub} className="text-slate-400 hover:text-white flex items-center gap-2 text-sm font-bold transition-colors">
-              <ArrowLeft size={16} /> Abandonar Quiz
-            </button>
-            <div className="font-bold text-white text-center hidden md:block">
-              {activeQuiz.title}
-            </div>
-            <div className="text-primary font-black text-sm bg-primary/10 px-3 py-1.5 rounded-lg border border-primary/20">
-              Questão {currentQuestionIndex + 1} de {activeQuiz.questions.length}
-            </div>
-          </div>
-
-          {/* BARRA DE PROGRESSO */}
-          <div className="w-full h-2 bg-slate-800 rounded-full mb-8 overflow-hidden border border-slate-700">
-            <div 
-              className="h-full bg-gradient-to-r from-primary to-accent transition-all duration-500 ease-out"
-              style={{ width: `${((currentQuestionIndex + 1) / activeQuiz.questions.length) * 100}%` }}
-            ></div>
-          </div>
-
-          {/* ÁREA DA PERGUNTA */}
-          <div className="flex-1 bg-slate-800/50 p-6 md:p-10 rounded-2xl border border-slate-700 shadow-xl flex flex-col relative overflow-hidden backdrop-blur-sm">
-            
-            <h2 className="text-2xl md:text-3xl font-bold text-white mb-8 leading-relaxed">
-              {activeQuiz.questions[currentQuestionIndex].text}
-            </h2>
-
-            <div className="flex flex-col gap-3 flex-1">
-              {activeQuiz.questions[currentQuestionIndex].options.map((option, idx) => {
-                const isSelected = selectedAnswers[activeQuiz.questions[currentQuestionIndex].id] === idx;
-                
-                return (
-                  <button
-                    key={idx}
-                    onClick={() => handleSelectAnswer(activeQuiz.questions[currentQuestionIndex].id, idx)}
-                    className={`
-                      w-full text-left p-4 md:p-5 rounded-xl border-2 transition-all duration-200 flex items-center justify-between group
-                      ${isSelected 
-                        ? 'border-primary bg-primary/10 shadow-[0_0_15px_rgba(109,40,217,0.2)] text-white' 
-                        : 'border-slate-700 bg-slate-900/50 text-slate-300 hover:border-slate-500 hover:bg-slate-800'}
-                    `}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className={`w-8 h-8 rounded-lg flex shrink-0 items-center justify-center font-bold text-sm transition-colors ${isSelected ? 'bg-primary text-white' : 'bg-slate-800 text-slate-400 group-hover:bg-slate-700 group-hover:text-white'}`}>
-                        {String.fromCharCode(65 + idx)}
-                      </div>
-                      <span className="text-base md:text-lg font-medium">{option}</span>
-                    </div>
-                    
-                    {isSelected && <CheckCircle2 className="text-primary shrink-0 ml-2" size={24} />}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* CONTROLES */}
-            <div className="mt-8 pt-6 border-t border-slate-700 flex justify-end">
-              <button 
-                onClick={handleNextQuestion}
-                disabled={selectedAnswers[activeQuiz.questions[currentQuestionIndex].id] === undefined}
-                className="bg-primary disabled:bg-slate-700 disabled:text-slate-500 hover:bg-accent text-white px-8 py-3 rounded-xl font-bold text-lg transition-all flex items-center gap-2 shadow-lg hover:shadow-primary/50 disabled:shadow-none"
-              >
-                {currentQuestionIndex === activeQuiz.questions.length - 1 ? 'Finalizar Quiz' : 'Próxima Questão'} <ChevronRight size={20} />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* -------------------- RESULT VIEW -------------------- */}
-      {view === 'result' && activeQuiz && (
-        <div className="flex-1 flex flex-col items-center justify-center max-w-3xl mx-auto w-full animate-fade-in-up pb-8">
-          <div className="bg-slate-800/80 p-6 md:p-10 rounded-3xl border border-slate-700 shadow-2xl text-center relative overflow-hidden w-full backdrop-blur-md">
-            
-            {/* Decoração de Fundo */}
-            <div className={`absolute top-0 left-0 w-full h-32 blur-3xl opacity-20 ${score === activeQuiz.questions.length ? 'bg-emerald-500' : 'bg-primary'}`}></div>
-
-            <div className="relative z-10">
-              <div className="w-24 h-24 mx-auto bg-slate-900 rounded-full border-4 border-slate-700 flex items-center justify-center mb-6 shadow-xl">
-                {score === activeQuiz.questions.length ? (
-                  <Award size={48} className="text-emerald-400" />
-                ) : (
-                  <Brain size={48} className="text-primary" />
-                )}
-              </div>
-
-              <h2 className="text-2xl md:text-3xl font-black text-white mb-2">Quiz Finalizado!</h2>
-              <p className="text-slate-400 mb-8 font-medium">Você concluiu "{activeQuiz.title}"</p>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                <div className="bg-slate-900/50 p-6 rounded-2xl border border-slate-700">
-                  <p className="text-slate-400 text-sm font-bold uppercase tracking-wider mb-2">Acertos</p>
-                  <p className="text-5xl font-black text-white">
-                    {score}<span className="text-2xl text-slate-500">/{activeQuiz.questions.length}</span>
-                  </p>
-                </div>
-                <div className="bg-primary/10 p-6 rounded-2xl border border-primary/20">
-                  <p className="text-primary text-sm font-bold uppercase tracking-wider mb-2">XP Ganho</p>
-                  <p className="text-5xl font-black text-white drop-shadow-[0_0_10px_rgba(109,40,217,0.5)]">
-                    +{(score / activeQuiz.questions.length) * activeQuiz.xpReward}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex flex-col md:flex-row gap-4 justify-center">
-                <button onClick={resetToHub} className="bg-slate-700 hover:bg-slate-600 text-white px-8 py-3 rounded-xl font-bold transition-colors">
-                  Voltar ao Hub
-                </button>
-                <button onClick={() => startQuiz(activeQuiz)} className="bg-primary hover:bg-accent text-white px-8 py-3 rounded-xl font-bold transition-colors shadow-lg hover:shadow-primary/50 flex items-center justify-center gap-2">
-                  <Play size={18} /> Tentar Novamente
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-    </div>
-  );
-}
-
-export default Quiz;
+import React, { useState, useEffect } from 'react';
+import { 
+  Brain, Search, Play, CheckCircle2, Clock, Award, ChevronRight, 
+  User, Star, ArrowLeft, HelpCircle, PlusCircle, Trash2, Check, 
+  Loader2, GraduationCap, X, Sparkles
+} from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import { getQuizzes, createQuiz, submitQuiz } from '../services/gamificationService';
+
+function Quiz() {
+  const { currentUser, updateCurrentUser, addXP } = useAuth();
+  const [view, setView] = useState('hub'); // hub, player, result
+  const [quizzes, setQuizzes] = useState([]);
+  const [loadingQuizzes, setLoadingQuizzes] = useState(true);
+  const [activeQuiz, setActiveQuiz] = useState(null);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [selectedAnswers, setSelectedAnswers] = useState({});
+  const [submissionResult, setSubmissionResult] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('Todos');
+
+  // Modal de Criação de Quiz (Exclusivo para Professor e Admin)
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [newQuiz, setNewQuiz] = useState({
+    title: '',
+    description: '',
+    category: 'Programação',
+    difficulty: 'Iniciante',
+    xp_reward: 150,
+    badge_emoji: '🏆',
+    badge_title: '',
+    badge_description: '',
+    questions: [
+      {
+        id: 1,
+        text: '',
+        options: ['', '', '', ''],
+        correct: 0
+      }
+    ]
+  });
+
+  const isTeacherOrAdmin = Boolean(
+    currentUser?.role === 'PROFESSOR' || 
+    currentUser?.role === 'ADMIN' || 
+    currentUser?.is_staff || 
+    currentUser?.is_superuser
+  );
+
+  const loadQuizzes = async () => {
+    try {
+      setLoadingQuizzes(true);
+      const data = await getQuizzes();
+      setQuizzes(data || []);
+    } catch (err) {
+      console.error('Erro ao carregar quizzes:', err);
+    } finally {
+      setLoadingQuizzes(false);
+    }
+  };
+
+  useEffect(() => {
+    loadQuizzes();
+  }, []);
+
+  const startQuiz = (quiz) => {
+    setActiveQuiz(quiz);
+    setCurrentQuestionIndex(0);
+    setSelectedAnswers({});
+    setSubmissionResult(null);
+    setView('player');
+  };
+
+  const handleSelectAnswer = (questionId, optionIndex) => {
+    setSelectedAnswers({ ...selectedAnswers, [questionId]: optionIndex });
+  };
+
+  const handleNextQuestion = () => {
+    if (currentQuestionIndex < activeQuiz.questions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+    } else {
+      finishQuiz();
+    }
+  };
+
+  const finishQuiz = async () => {
+    try {
+      // Submeter para o backend
+      const res = await submitQuiz(activeQuiz.id, selectedAnswers);
+      setSubmissionResult(res);
+
+      if (res.xp_earned > 0) {
+        if (updateCurrentUser) {
+          updateCurrentUser({ xp: res.user_xp });
+        } else if (addXP) {
+          addXP(res.xp_earned);
+        }
+      }
+    } catch (err) {
+      console.error('Erro ao submeter quiz:', err);
+      // Fallback local caso offline
+      let localScore = 0;
+      activeQuiz.questions.forEach(q => {
+        if (selectedAnswers[q.id] === q.correct) localScore++;
+      });
+      const pct = Math.round((localScore / activeQuiz.questions.length) * 100);
+      const earned = pct >= 50 ? activeQuiz.xp_reward : Math.round(activeQuiz.xp_reward * (pct / 100));
+      const tier = pct === 100 ? 'OURO' : (pct >= 70 ? 'PRATA' : (pct >= 50 ? 'BRONZE' : null));
+      const badgeInfo = tier ? {
+        name: `${tier === 'OURO' ? '🥇 [Ouro]' : tier === 'PRATA' ? '🥈 [Prata]' : '🥉 [Bronze]'} ${activeQuiz.badge_title || activeQuiz.title}`,
+        description: `${activeQuiz.badge_description || activeQuiz.description || 'Conquista do Quiz'} (${tier === 'OURO' ? '100% Gabaritado!' : tier === 'PRATA' ? '70%+ de acerto' : '50%+ de acerto'})`,
+        tier,
+        emoji: tier === 'OURO' ? '🥇' : tier === 'PRATA' ? '🥈' : '🥉'
+      } : null;
+
+      setSubmissionResult({
+        score: localScore,
+        total_questions: activeQuiz.questions.length,
+        score_percentage: pct,
+        passed: pct >= 50,
+        xp_earned: earned,
+        badge_tier: tier,
+        badge_awarded: badgeInfo
+      });
+      if (earned > 0 && addXP) addXP(earned);
+    }
+
+    setView('result');
+  };
+
+  const resetToHub = () => {
+    setActiveQuiz(null);
+    setView('hub');
+  };
+
+  // Funções do Modal de Criação de Quiz
+  const handleAddQuestion = () => {
+    setNewQuiz(prev => ({
+      ...prev,
+      questions: [
+        ...prev.questions,
+        {
+          id: prev.questions.length + 1,
+          text: '',
+          options: ['', '', '', ''],
+          correct: 0
+        }
+      ]
+    }));
+  };
+
+  const handleRemoveQuestion = (idx) => {
+    if (newQuiz.questions.length <= 1) return;
+    setNewQuiz(prev => ({
+      ...prev,
+      questions: prev.questions.filter((_, i) => i !== idx)
+    }));
+  };
+
+  const handleQuestionTextChange = (idx, text) => {
+    setNewQuiz(prev => {
+      const qList = [...prev.questions];
+      qList[idx].text = text;
+      return { ...prev, questions: qList };
+    });
+  };
+
+  const handleOptionChange = (qIdx, optIdx, val) => {
+    setNewQuiz(prev => {
+      const qList = [...prev.questions];
+      const opts = [...qList[qIdx].options];
+      opts[optIdx] = val;
+      qList[qIdx].options = opts;
+      return { ...prev, questions: qList };
+    });
+  };
+
+  const handleCorrectChoice = (qIdx, optIdx) => {
+    setNewQuiz(prev => {
+      const qList = [...prev.questions];
+      qList[qIdx].correct = optIdx;
+      return { ...prev, questions: qList };
+    });
+  };
+
+  const handleSaveQuiz = async (e) => {
+    e.preventDefault();
+    if (!newQuiz.title.trim()) {
+      alert('Por favor, informe o título do Quiz.');
+      return;
+    }
+
+    for (let i = 0; i < newQuiz.questions.length; i++) {
+      const q = newQuiz.questions[i];
+      if (!q.text.trim()) {
+        alert(`A questão #${i + 1} precisa ter um enunciado.`);
+        return;
+      }
+      const filledOpts = q.options.filter(o => o.trim().length > 0);
+      if (filledOpts.length < 2) {
+        alert(`A questão #${i + 1} precisa ter pelo menos 2 alternativas preenchidas.`);
+        return;
+      }
+    }
+
+    try {
+      setIsPublishing(true);
+      await createQuiz({
+        title: newQuiz.title,
+        description: newQuiz.description,
+        category: newQuiz.category,
+        difficulty: newQuiz.difficulty,
+        xp_reward: Number(newQuiz.xp_reward) || 150,
+        badge_emoji: newQuiz.badge_emoji || '🏆',
+        badge_title: newQuiz.badge_title || newQuiz.title,
+        badge_description: newQuiz.badge_description || newQuiz.description,
+        questions: newQuiz.questions
+      });
+
+      alert('🎉 Quiz criado com sucesso! As conquistas de Bronze (50%), Prata (70%) e Ouro (100%) foram geradas automaticamente!');
+      setShowCreateModal(false);
+      // Resetar formulário
+      setNewQuiz({
+        title: '',
+        description: '',
+        category: 'Programação',
+        difficulty: 'Iniciante',
+        xp_reward: 150,
+        badge_emoji: '🏆',
+        badge_title: '',
+        badge_description: '',
+        questions: [{ id: 1, text: '', options: ['', '', '', ''], correct: 0 }]
+      });
+      loadQuizzes();
+    } catch (err) {
+      alert(err.response?.data?.error || err.response?.data?.detail || 'Erro ao publicar quiz.');
+    } finally {
+      setIsPublishing(false);
+    }
+  };
+
+  const filteredQuizzes = quizzes.filter(q => {
+    const matchSearch = q.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      (q.category && q.category.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchCat = selectedCategory === 'Todos' || q.category === selectedCategory;
+    return matchSearch && matchCat;
+  });
+
+  return (
+    <div className="h-full flex flex-col relative z-10 animate-fade-in overflow-y-auto">
+      
+      {/* -------------------- HUB VIEW -------------------- */}
+      {view === 'hub' && (
+        <div className="flex-1 flex flex-col gap-6 max-w-5xl mx-auto w-full pb-8">
+          
+          {/* HEADER CABEÇALHO */}
+          <div className="bg-gradient-to-r from-primary via-purple-600 to-indigo-700 rounded-2xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden flex-shrink-0 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div className="relative z-10 max-w-2xl">
+              <div className="flex items-center gap-2 mb-2 flex-wrap">
+                <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-white/20 text-white flex items-center gap-1 backdrop-blur-md">
+                  <Sparkles size={12} /> Desafios Acadêmicos
+                </span>
+                {isTeacherOrAdmin && (
+                  <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-400/25 text-amber-200 border border-amber-300/40 flex items-center gap-1">
+                    🎓 Modo Criador Docente
+                  </span>
+                )}
+              </div>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-black mb-2 flex items-center gap-2.5">
+                <Brain size={32} /> Central de Quizzes & Desafios
+              </h1>
+              <p className="text-white/85 text-xs sm:text-sm md:text-base leading-relaxed">
+                Resolva questionários oficiais criados por professores e administradores. Acumule XP, suba no ranking e desbloqueie itens na Loja!
+              </p>
+            </div>
+
+            {/* BOTÃO EXCLUSIVO DE CRIAR QUIZ PARA PROFESSORES E ADMINS */}
+            {isTeacherOrAdmin && (
+              <button
+                type="button"
+                onClick={() => setShowCreateModal(true)}
+                className="relative z-10 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black px-5 py-3 rounded-xl shadow-lg shadow-amber-400/30 flex items-center gap-2 transition-all active:scale-95 text-xs sm:text-sm shrink-0 whitespace-nowrap cursor-pointer"
+                title="Criar novo questionário para a comunidade de alunos"
+              >
+                <PlusCircle size={18} /> Criar Novo Quiz
+              </button>
+            )}
+          </div>
+
+          {/* BARRA DE PESQUISA E FILTROS */}
+          <div className="flex flex-col md:flex-row gap-3 justify-between items-stretch md:items-center bg-slate-800/60 p-3 sm:p-4 rounded-2xl border border-slate-700/60 backdrop-blur-md">
+            <div className="relative flex-1">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={17} />
+              <input 
+                type="text" 
+                placeholder="Buscar quiz por título ou matéria..." 
+                className="w-full bg-slate-900 border border-slate-700/80 rounded-xl py-2 pl-10 pr-4 text-xs sm:text-sm text-white focus:border-primary outline-none transition-all placeholder-slate-400"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              {searchTerm && (
+                <button 
+                  onClick={() => setSearchTerm('')} 
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-1"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+            
+            <div className="flex gap-1.5 overflow-x-auto pb-1 md:pb-0 no-scrollbar">
+              {['Todos', 'Programação', 'Lógica', 'Computação', 'Matemática', 'Geral'].map(cat => (
+                <button 
+                  key={cat} 
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                    selectedCategory === cat 
+                      ? 'bg-primary text-white shadow-md shadow-primary/30' 
+                      : 'bg-slate-800 text-slate-300 hover:text-white border border-slate-700/60'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* GRID DE QUIZZES */}
+          {loadingQuizzes ? (
+            <div className="py-16 text-center text-slate-400 flex flex-col items-center justify-center gap-2">
+              <Loader2 size={32} className="animate-spin text-primary" />
+              <span className="text-sm font-semibold">Carregando quizzes do servidor...</span>
+            </div>
+          ) : filteredQuizzes.length === 0 ? (
+            <div className="py-16 text-center text-slate-400 bg-slate-800/40 rounded-2xl border border-slate-700 p-8">
+              <Brain size={40} className="mx-auto text-slate-500 mb-2" />
+              <p className="text-white font-bold text-base">Nenhum quiz encontrado</p>
+              <p className="text-xs text-slate-400 mt-1">Tente buscar por outro termo ou categoria.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {filteredQuizzes.map(quiz => {
+                const qCount = quiz.questions?.length || quiz.questions_count || 0;
+                const isProf = quiz.creator_role === 'PROFESSOR';
+                const isAdmin = quiz.creator_role === 'ADMIN';
+
+                return (
+                  <div key={quiz.id} className="bg-slate-800/90 border border-slate-700/80 rounded-2xl overflow-hidden hover:border-primary/50 transition-all hover:-translate-y-1 shadow-lg group flex flex-col">
+                    <div className="p-5 flex-1">
+                      <div className="flex justify-between items-start gap-2 mb-3">
+                        <span className="bg-primary/20 text-primary text-xs font-bold px-2.5 py-1 rounded-lg border border-primary/20">
+                          {quiz.category}
+                        </span>
+                        <span className="flex items-center gap-1 text-xs font-bold text-amber-400 bg-amber-400/10 px-2.5 py-1 rounded-lg border border-amber-400/20">
+                          <Star size={12} /> {quiz.difficulty}
+                        </span>
+                      </div>
+
+                      <h3 className="text-lg font-bold text-white mb-1.5 leading-snug group-hover:text-primary transition-colors line-clamp-2">
+                        {quiz.title}
+                      </h3>
+                      
+                      {quiz.description && (
+                        <p className="text-xs text-slate-400 mb-3 line-clamp-2">{quiz.description}</p>
+                      )}
+
+                      <p className="text-slate-400 text-xs flex items-center gap-1.5 mb-4 font-medium">
+                        <User size={13} className="text-slate-400" />
+                        <span>Por <strong className="text-slate-200">{quiz.creator_name || quiz.author || 'Docente UniStudy'}</strong></span>
+                        {isProf && (
+                          <span className="text-[10px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded border border-amber-500/30 font-bold" title="Criador é Professor Verificado">
+                            🎓 Prof
+                          </span>
+                        )}
+                        {isAdmin && (
+                          <span className="text-[10px] bg-purple-500/20 text-purple-300 px-1.5 py-0.5 rounded border border-purple-500/30 font-bold" title="Criador é Administrador">
+                            🛡️ Admin
+                          </span>
+                        )}
+                      </p>
+                      
+                      <div className="flex items-center gap-3 text-xs font-semibold text-slate-300 bg-slate-900/50 p-2.5 rounded-xl border border-slate-700/60">
+                        <span className="flex items-center gap-1.5"><HelpCircle size={14} className="text-purple-400"/> {qCount} Questões</span>
+                        <span className="text-slate-600">•</span>
+                        <span className="flex items-center gap-1.5 text-emerald-400"><Clock size={13}/> Sem tempo</span>
+                      </div>
+                    </div>
+                    
+                    <div className="border-t border-slate-700/80 p-3.5 bg-slate-900/30 flex justify-between items-center">
+                      <span className="text-primary font-bold text-sm flex items-center gap-1">
+                        <Award size={16} /> +{quiz.xp_reward || quiz.xpReward || 150} XP
+                      </span>
+                      <button 
+                        onClick={() => startQuiz(quiz)}
+                        className="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-xl font-bold text-xs sm:text-sm transition-all flex items-center gap-1.5 shadow-md shadow-primary/30 active:scale-95 cursor-pointer"
+                      >
+                        Iniciar <Play size={13} />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* -------------------- PLAYER VIEW -------------------- */}
+      {view === 'player' && activeQuiz && (
+        <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full h-full relative pb-8">
+          
+          {/* HEADER DO PLAYER */}
+          <div className="flex items-center justify-between mb-6 bg-slate-800/80 p-3.5 sm:p-4 rounded-2xl border border-slate-700 shadow-md">
+            <button onClick={resetToHub} className="text-slate-400 hover:text-white flex items-center gap-1.5 text-xs sm:text-sm font-bold transition-colors">
+              <ArrowLeft size={16} /> Sair do Quiz
+            </button>
+            <div className="font-bold text-white text-xs sm:text-sm text-center hidden md:block truncate max-w-md">
+              {activeQuiz.title}
+            </div>
+            <div className="text-primary font-black text-xs sm:text-sm bg-primary/10 px-3 py-1.5 rounded-xl border border-primary/20 shrink-0">
+              Questão {currentQuestionIndex + 1} de {activeQuiz.questions.length}
+            </div>
+          </div>
+
+          {/* PERGUNTA ATUAL */}
+          {(() => {
+            const currentQuestion = activeQuiz.questions[currentQuestionIndex];
+            const isAnswered = selectedAnswers[currentQuestion.id] !== undefined;
+
+            return (
+              <div className="flex-1 flex flex-col justify-between bg-slate-800/90 border border-slate-700 rounded-3xl p-5 sm:p-8 shadow-2xl relative overflow-hidden">
+                <div>
+                  <span className="text-xs font-bold text-purple-400 uppercase tracking-widest block mb-2">Pergunta #{currentQuestionIndex + 1}</span>
+                  <h2 className="text-xl sm:text-2xl font-bold text-white mb-6 sm:mb-8 leading-snug">
+                    {currentQuestion.text}
+                  </h2>
+
+                  {/* OPÇÕES */}
+                  <div className="space-y-3">
+                    {currentQuestion.options.map((opt, optIdx) => {
+                      if (!opt) return null;
+                      const isSelected = selectedAnswers[currentQuestion.id] === optIdx;
+                      return (
+                        <button
+                          key={optIdx}
+                          type="button"
+                          onClick={() => handleSelectAnswer(currentQuestion.id, optIdx)}
+                          className={`w-full text-left p-3.5 sm:p-4 rounded-xl font-medium text-xs sm:text-sm transition-all flex items-center justify-between border cursor-pointer ${
+                            isSelected
+                              ? 'bg-primary text-white border-primary shadow-lg shadow-primary/30 scale-[1.01]'
+                              : 'bg-slate-900/60 text-slate-300 border-slate-700 hover:border-primary/50 hover:bg-slate-900'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <span className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 ${
+                              isSelected ? 'bg-white text-primary' : 'bg-slate-800 text-slate-400'
+                            }`}>
+                              {String.fromCharCode(65 + optIdx)}
+                            </span>
+                            <span>{opt}</span>
+                          </div>
+                          {isSelected && <CheckCircle2 size={18} className="shrink-0" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* BOTÃO AVANÇAR */}
+                <div className="mt-8 pt-4 border-t border-slate-700 flex justify-end">
+                  <button
+                    onClick={handleNextQuestion}
+                    disabled={!isAnswered}
+                    className="bg-primary hover:bg-primary/90 disabled:opacity-50 text-white font-bold px-6 py-2.5 rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-primary/20 active:scale-95 text-xs sm:text-sm cursor-pointer"
+                  >
+                    {currentQuestionIndex < activeQuiz.questions.length - 1 ? 'Próxima Questão' : 'Finalizar e Ver Resultado'} 
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+      )}
+
+      {/* -------------------- RESULT VIEW -------------------- */}
+      {view === 'result' && activeQuiz && (
+        <div className="flex-1 flex flex-col items-center justify-center max-w-lg mx-auto w-full text-center pb-8 animate-fade-in">
+          <div className="bg-slate-800/90 border border-slate-700 rounded-3xl p-6 sm:p-8 shadow-2xl w-full">
+            <div className={`w-20 h-20 rounded-full mx-auto flex items-center justify-center mb-5 text-4xl shadow-inner ${
+              submissionResult?.score_percentage === 100
+                ? 'bg-yellow-500/25 text-yellow-300 border-2 border-yellow-400 shadow-[0_0_30px_rgba(234,179,8,0.4)]'
+                : submissionResult?.score_percentage >= 70
+                  ? 'bg-slate-300/25 text-slate-200 border-2 border-slate-300 shadow-[0_0_20px_rgba(203,213,225,0.3)]'
+                  : submissionResult?.score_percentage >= 50
+                    ? 'bg-amber-600/25 text-amber-300 border-2 border-amber-600 shadow-[0_0_20px_rgba(217,119,6,0.3)]'
+                    : 'bg-red-500/20 text-red-400 border border-red-500/30'
+            }`}>
+              {submissionResult?.score_percentage === 100 ? '🥇' : submissionResult?.score_percentage >= 70 ? '🥈' : submissionResult?.score_percentage >= 50 ? '🥉' : '📚'}
+            </div>
+
+            <h2 className="text-2xl font-black text-white mb-2">
+              {submissionResult?.score_percentage === 100 
+                ? '🎉 100% Gabaritado! Lendário!' 
+                : submissionResult?.score_percentage >= 70 
+                  ? '🥈 Excelente Desempenho!' 
+                  : submissionResult?.score_percentage >= 50 
+                    ? '🥉 Bom Trabalho!' 
+                    : 'Tente Novamente!'}
+            </h2>
+            
+            <p className="text-slate-400 text-xs sm:text-sm mb-6">
+              {submissionResult?.score_percentage >= 50 
+                ? 'Você alcançou os critérios mínimos e desbloqueou a recompensa!' 
+                : 'Você precisa de pelo menos 50% de acertos para conquistar o primeiro selo deste Quiz.'}
+            </p>
+
+            <div className="grid grid-cols-2 gap-3 mb-5 bg-slate-900/60 p-4 rounded-2xl border border-slate-700">
+              <div>
+                <span className="text-xs text-slate-400 font-semibold block">Acertos</span>
+                <span className="text-xl font-black text-white">{submissionResult?.score || 0} / {submissionResult?.total_questions || activeQuiz.questions.length}</span>
+              </div>
+              <div>
+                <span className="text-xs text-slate-400 font-semibold block">Aproveitamento</span>
+                <span className={`text-xl font-black ${
+                  submissionResult?.score_percentage >= 70 ? 'text-emerald-400' : submissionResult?.score_percentage >= 50 ? 'text-amber-400' : 'text-red-400'
+                }`}>
+                  {submissionResult?.score_percentage || 0}%
+                </span>
+              </div>
+            </div>
+
+            {/* SEÇÃO DO SELO DA CONQUISTA (BRONZE 50%, PRATA 70%, OURO 100%) */}
+            {submissionResult?.badge_awarded ? (
+              <div className={`mb-5 p-4 rounded-2xl border text-center transition-all ${
+                submissionResult.badge_tier === 'OURO'
+                  ? 'bg-gradient-to-br from-yellow-500/20 via-amber-500/10 to-slate-900 border-yellow-400/60 shadow-[0_0_25px_rgba(234,179,8,0.25)]'
+                  : submissionResult.badge_tier === 'PRATA'
+                    ? 'bg-gradient-to-br from-slate-400/20 via-slate-600/10 to-slate-900 border-slate-300/60 shadow-[0_0_20px_rgba(203,213,225,0.2)]'
+                    : 'bg-gradient-to-br from-amber-700/20 via-orange-900/10 to-slate-900 border-amber-600/50 shadow-[0_0_20px_rgba(217,119,6,0.2)]'
+              }`}>
+                <div className="text-3xl mb-1.5 drop-shadow">
+                  {submissionResult.badge_awarded.emoji || (submissionResult.badge_tier === 'OURO' ? '🥇' : submissionResult.badge_tier === 'PRATA' ? '🥈' : '🥉')}
+                </div>
+                <span className={`inline-block text-[11px] font-black uppercase px-2.5 py-0.5 rounded-full mb-1 ${
+                  submissionResult.badge_tier === 'OURO'
+                    ? 'bg-yellow-400/30 text-yellow-300 border border-yellow-400/50'
+                    : submissionResult.badge_tier === 'PRATA'
+                      ? 'bg-slate-300/30 text-slate-200 border border-slate-300/50'
+                      : 'bg-amber-600/30 text-amber-300 border border-amber-500/50'
+                }`}>
+                  {submissionResult.badge_tier === 'OURO' ? '🥇 Selo de Ouro Desbloqueado!' : submissionResult.badge_tier === 'PRATA' ? '🥈 Selo de Prata Desbloqueado!' : '🥉 Selo de Bronze Desbloqueado!'}
+                </span>
+                <h3 className="text-sm sm:text-base font-black text-white mt-1">{submissionResult.badge_awarded.name}</h3>
+                <p className="text-xs text-slate-300 mt-1 max-w-sm mx-auto leading-relaxed">{submissionResult.badge_awarded.description}</p>
+                <div className="mt-2 text-[11px] text-emerald-400 font-bold flex items-center justify-center gap-1">
+                  <Sparkles size={12} /> Salvo em Minhas Conquistas & Perfil!
+                </div>
+              </div>
+            ) : (
+              <div className="mb-5 p-3.5 rounded-2xl bg-slate-900/60 border border-slate-700/60 text-center">
+                <span className="text-xl block mb-1">🔒</span>
+                <p className="text-xs font-bold text-slate-300">Nenhum Selo Desbloqueado</p>
+                <p className="text-[11px] text-slate-400 mt-0.5 leading-relaxed">
+                  Abaixo de 50% não há concessão de selo. Obtenha 50% para o 🥉 Selo Bronze, 70% para 🥈 Prata ou 100% para 🥇 Ouro!
+                </p>
+              </div>
+            )}
+
+            {Boolean(submissionResult?.xp_earned > 0) && (
+              <div className="mb-6 p-3 rounded-xl bg-primary/20 border border-primary/30 text-primary font-bold text-sm flex items-center justify-center gap-2">
+                <Award size={18} /> +{submissionResult?.xp_earned} XP Adicionado ao Seu Perfil!
+              </div>
+            )}
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => startQuiz(activeQuiz)}
+                className="flex-1 py-2.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs sm:text-sm transition-all"
+              >
+                Tentar Novamente
+              </button>
+              <button
+                onClick={resetToHub}
+                className="flex-1 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold text-xs sm:text-sm transition-all shadow-md shadow-primary/25"
+              >
+                Voltar à Central
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* -------------------- MODAL DE CRIAÇÃO DE QUIZ (EXCLUSIVO DOCENTE/ADMIN) -------------------- */}
+      {showCreateModal && (
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-slate-900 border border-slate-700 rounded-3xl max-w-2xl w-full p-5 sm:p-7 shadow-2xl relative my-8 animate-fade-in">
+            <button
+              onClick={() => setShowCreateModal(false)}
+              className="absolute right-4 top-4 p-2 text-slate-400 hover:text-white rounded-xl bg-slate-800/80 hover:bg-slate-700"
+            >
+              <X size={18} />
+            </button>
+
+            <div className="flex items-center gap-2.5 mb-5">
+              <div className="w-10 h-10 rounded-xl bg-amber-400/20 text-amber-300 flex items-center justify-center font-bold">
+                <GraduationCap size={22} />
+              </div>
+              <div>
+                <h3 className="text-lg sm:text-xl font-black text-white">Criar Novo Quiz Oficial</h3>
+                <p className="text-xs text-slate-400">Elabore perguntas para desafiar os alunos e distribuir XP acadêmico.</p>
+              </div>
+            </div>
+
+            <form onSubmit={handleSaveQuiz} className="space-y-4">
+              {/* Título */}
+              <div>
+                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Título do Quiz *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ex: Introdução a Algoritmos e Estruturas"
+                  value={newQuiz.title}
+                  onChange={(e) => setNewQuiz({ ...newQuiz, title: e.target.value })}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs sm:text-sm text-white focus:border-primary outline-none"
+                />
+              </div>
+
+              {/* Descrição */}
+              <div>
+                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Breve Descrição</label>
+                <input
+                  type="text"
+                  placeholder="Ex: Questionário sobre vetores, matrizes e laços de repetição."
+                  value={newQuiz.description}
+                  onChange={(e) => setNewQuiz({ ...newQuiz, description: e.target.value })}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs sm:text-sm text-white focus:border-primary outline-none"
+                />
+              </div>
+
+              {/* Categoria, Dificuldade e Recompensa */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Categoria</label>
+                  <select
+                    value={newQuiz.category}
+                    onChange={(e) => setNewQuiz({ ...newQuiz, category: e.target.value })}
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:border-primary outline-none font-medium"
+                  >
+                    <option value="Programação">Programação</option>
+                    <option value="Lógica">Lógica</option>
+                    <option value="Computação">Computação</option>
+                    <option value="Matemática">Matemática</option>
+                    <option value="Engenharia">Engenharia</option>
+                    <option value="Geral">Geral</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Dificuldade</label>
+                  <select
+                    value={newQuiz.difficulty}
+                    onChange={(e) => setNewQuiz({ ...newQuiz, difficulty: e.target.value })}
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:border-primary outline-none font-medium"
+                  >
+                    <option value="Iniciante">Iniciante</option>
+                    <option value="Intermediário">Intermediário</option>
+                    <option value="Avançado">Avançado</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Recompensa (XP)</label>
+                  <input
+                    type="number"
+                    min="50"
+                    max="1000"
+                    step="50"
+                    value={newQuiz.xp_reward}
+                    onChange={(e) => setNewQuiz({ ...newQuiz, xp_reward: Number(e.target.value) })}
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs sm:text-sm text-white focus:border-primary outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* CONFIGURAÇÃO DA CONQUISTA & SELOS (BRONZE 50%, PRATA 70%, OURO 100%) */}
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-primary/10 via-purple-950/20 to-slate-900 border border-primary/30 space-y-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-300 flex items-center justify-center font-bold text-base shadow-sm">
+                    🏅
+                  </div>
+                  <div>
+                    <h4 className="text-xs sm:text-sm font-black text-white">Configurar Selo da Conquista do Quiz</h4>
+                    <p className="text-[11px] text-slate-400">Os 3 níveis de medalhas serão gerados automaticamente conforme a pontuação.</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
+                  <div className="sm:col-span-1">
+                    <label className="block text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-1">Emoji do Selo</label>
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        type="text"
+                        maxLength="4"
+                        value={newQuiz.badge_emoji}
+                        onChange={(e) => setNewQuiz({ ...newQuiz, badge_emoji: e.target.value })}
+                        className="w-12 text-center bg-slate-800 border border-slate-700 rounded-xl p-2 text-base text-white focus:border-primary outline-none shrink-0"
+                      />
+                      <div className="flex flex-wrap gap-1">
+                        {['🏆', '🧠', '⚡', '🐍', '🎯', '💻', '🚀', '🦉'].map(em => (
+                          <button
+                            type="button"
+                            key={em}
+                            onClick={() => setNewQuiz({ ...newQuiz, badge_emoji: em })}
+                            className="p-1 rounded-md bg-slate-800 hover:bg-primary/40 border border-slate-700 text-xs transition-colors"
+                          >
+                            {em}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="sm:col-span-3">
+                    <label className="block text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-1">Título da Conquista / Selo</label>
+                    <input
+                      type="text"
+                      placeholder="Ex: Mestre em Algoritmos e Lógica"
+                      value={newQuiz.badge_title}
+                      onChange={(e) => setNewQuiz({ ...newQuiz, badge_title: e.target.value })}
+                      className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:border-primary outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-1">Descrição da Conquista</label>
+                  <input
+                    type="text"
+                    placeholder="Ex: Demonstrou domínio em sintaxe, estruturas condicionais e laços."
+                    value={newQuiz.badge_description}
+                    onChange={(e) => setNewQuiz({ ...newQuiz, badge_description: e.target.value })}
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:border-primary outline-none"
+                  />
+                </div>
+
+                {/* Prévia automática dos 3 níveis */}
+                <div className="pt-2 border-t border-slate-800/80">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5 flex items-center gap-1">
+                    <Sparkles size={11} className="text-amber-400" /> Prévia dos Selos gerados automaticamente pelo sistema:
+                  </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                    <div className="p-2.5 rounded-xl bg-amber-950/25 border border-amber-700/40 text-amber-200">
+                      <span className="font-bold flex items-center gap-1 text-[11px] text-amber-300">
+                        🥉 Bronze (50%+)
+                      </span>
+                      <p className="text-[10px] text-amber-200/90 truncate mt-0.5">
+                        🥉 {newQuiz.badge_emoji || '🏆'} [Bronze] {newQuiz.badge_title || newQuiz.title || 'Título da Conquista'}
+                      </p>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-slate-800/60 border border-slate-400/40 text-slate-200">
+                      <span className="font-bold flex items-center gap-1 text-[11px] text-slate-300">
+                        🥈 Prata (70%+)
+                      </span>
+                      <p className="text-[10px] text-slate-300/90 truncate mt-0.5">
+                        🥈 {newQuiz.badge_emoji || '🏆'} [Prata] {newQuiz.badge_title || newQuiz.title || 'Título da Conquista'}
+                      </p>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-yellow-950/30 border border-yellow-500/50 text-yellow-200">
+                      <span className="font-bold flex items-center gap-1 text-[11px] text-yellow-400">
+                        🥇 Ouro (100%)
+                      </span>
+                      <p className="text-[10px] text-yellow-300/90 truncate mt-0.5">
+                        🥇 {newQuiz.badge_emoji || '🏆'} [Ouro] {newQuiz.badge_title || newQuiz.title || 'Título da Conquista'}
+                      </p>
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-slate-400 mt-1.5 italic">
+                    * Abaixo de 50%, o participante não atinge a pontuação mínima para selo.
+                  </p>
+                </div>
+              </div>
+
+              {/* Construtor de Perguntas */}
+              <div className="pt-3 border-t border-slate-800">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-sm font-bold text-white flex items-center gap-1.5">
+                    <HelpCircle size={16} className="text-purple-400" /> Perguntas ({newQuiz.questions.length})
+                  </h4>
+                  <button
+                    type="button"
+                    onClick={handleAddQuestion}
+                    className="text-xs font-bold text-primary hover:text-white flex items-center gap-1 bg-primary/20 px-3 py-1.5 rounded-lg border border-primary/30"
+                  >
+                    <PlusCircle size={14} /> Adicionar Pergunta
+                  </button>
+                </div>
+
+                <div className="space-y-4 max-h-72 overflow-y-auto pr-1 no-scrollbar">
+                  {newQuiz.questions.map((q, qIdx) => (
+                    <div key={qIdx} className="bg-slate-800/60 border border-slate-700/80 rounded-2xl p-4 relative">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-bold text-slate-300">Questão #{qIdx + 1}</span>
+                        {newQuiz.questions.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveQuestion(qIdx)}
+                            className="text-red-400 hover:text-red-300 p-1 text-xs"
+                            title="Remover esta questão"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        )}
+                      </div>
+
+                      <input
+                        type="text"
+                        placeholder="Enunciado da pergunta..."
+                        value={q.text}
+                        onChange={(e) => handleQuestionTextChange(qIdx, e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white mb-3 focus:border-primary outline-none"
+                      />
+
+                      <div className="space-y-1.5">
+                        <span className="text-[11px] text-slate-400 block font-semibold">Alternativas (Marque a correta):</span>
+                        {q.options.map((opt, optIdx) => (
+                          <div key={optIdx} className="flex items-center gap-2">
+                            <input
+                              type="radio"
+                              name={`correct-${qIdx}`}
+                              checked={q.correct === optIdx}
+                              onChange={() => handleCorrectChoice(qIdx, optIdx)}
+                              className="accent-primary cursor-pointer w-4 h-4"
+                              title="Marcar como alternativa correta"
+                            />
+                            <span className="text-xs font-bold text-slate-400 w-4">{String.fromCharCode(65 + optIdx)}</span>
+                            <input
+                              type="text"
+                              placeholder={`Opção ${String.fromCharCode(65 + optIdx)}`}
+                              value={opt}
+                              onChange={(e) => handleOptionChange(qIdx, optIdx, e.target.value)}
+                              className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:border-primary outline-none"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Botão de Envio */}
+              <div className="pt-3 border-t border-slate-800 flex justify-end gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateModal(false)}
+                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-400 hover:text-white"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={isPublishing}
+                  className="bg-primary hover:bg-primary/90 text-white font-bold px-6 py-2.5 rounded-xl text-xs sm:text-sm flex items-center gap-2 shadow-lg shadow-primary/25 disabled:opacity-50"
+                >
+                  {isPublishing ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
+                  {isPublishing ? 'Publicando...' : 'Publicar Quiz Oficial'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
+}
+
+export default Quiz;

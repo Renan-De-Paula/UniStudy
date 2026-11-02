@@ -92,14 +92,22 @@ TEMPLATES = [
 WSGI_APPLICATION = 'unistudy_hub.wsgi.application'
 ASGI_APPLICATION = 'unistudy_hub.asgi.application'
 
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            "hosts": [(os.getenv('REDIS_HOST', '127.0.0.1'), 6379)],
+USE_REDIS = os.getenv('USE_REDIS', 'False').lower() in ('true', '1')
+if USE_REDIS and os.getenv('REDIS_HOST'):
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels_redis.core.RedisChannelLayer',
+            'CONFIG': {
+                "hosts": [(os.getenv('REDIS_HOST'), int(os.getenv('REDIS_PORT', 6379)))],
+            },
         },
-    },
-}
+    }
+else:
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels.layers.InMemoryChannelLayer',
+        },
+    }
 
 if os.getenv('DATABASE_URL') and dj_database_url:
     DATABASES = {
@@ -122,6 +130,12 @@ else:
 
 
 AUTH_USER_MODEL = 'accounts.User'
+
+AUTHENTICATION_BACKENDS = [
+    'accounts.backends.EmailOrUsernameModelBackend',
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
@@ -167,4 +181,9 @@ if USE_S3:
     AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
     DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
     MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
+
+# Permitir upload de imagens maiores embutidas em apostilas (50MB)
+DATA_UPLOAD_MAX_MEMORY_SIZE = 52428800
+FILE_UPLOAD_MAX_MEMORY_SIZE = 52428800
+
 

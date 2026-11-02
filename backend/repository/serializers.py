@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Material, MaterialComment
+from community.models import Discipline
 from accounts.models import User
 
 class AuthorSerializer(serializers.ModelSerializer):
@@ -21,3 +22,4 @@ class MaterialSerializer(serializers.ModelSerializer):
     class Meta:
         model = Material
         fields = ['id', 'title', 'discipline', 'uploaded_by', 'material_type', 'privacy', 'link_or_file_url', 'content_html', 'created_at', 'updated_at', 'comments']
+        extra_kwargs = {'discipline': {'required': False}}

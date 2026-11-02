@@ -1,13 +1,13 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../services/api';
-import { ArrowLeft, CheckCircle2, Circle, Clock, Layout, Trophy } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Circle, Layout, Trophy } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 function TrilhaViewer() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { currentUser, updateXP } = useAuth();
+  const { currentUser, updateCurrentUser } = useAuth();
   const [trilha, setTrilha] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -36,6 +36,9 @@ function TrilhaViewer() {
         ...trilha,
         topicos_concluidos: res.data.topicos_concluidos
       });
+      if (res.data.new_xp !== undefined && updateCurrentUser) {
+        updateCurrentUser({ xp: res.data.new_xp });
+      }
     } catch (err) {
       console.error('Erro ao marcar topico', err);
     }

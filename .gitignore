@@ -1,3 +1,8 @@
+# Banco de Dados Local
+*.sqlite3
+*.sqlite3*
+db.sqlite3
+
 # Ambientes Virtuais
 venv/
 env/

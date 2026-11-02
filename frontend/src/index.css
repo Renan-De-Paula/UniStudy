@@ -19,73 +19,661 @@
   }
 }
 
-/* -----------------------------------------------------
-   LIGHT THEME OVERRIDES
-   Forçando a sobrescrita das classes do Tailwind quando 
-   o body tiver a classe .light-theme
------------------------------------------------------ */
+/* ==========================================================================
+   LIGHT THEME OVERRIDES (WCAG AA/AAA High Contrast)
+   TUDO AQUI ESTÁ ESCOPLADO ESTRITAMENTE DENTRO DE `body.light-theme`
+   O modo escuro permanece 100% inalterado!
+   ========================================================================== */
+
+/* 1. Base e Fundo Principal */
 body.light-theme {
+  background-color: #f8fafc !important; /* Slate 50 */
+  color: #1e293b !important; /* Slate 800 */
+}
+
+/* 2. Containers Escuros (bg-dark, bg-darker) -> Brancos e Claros no Light Mode */
+body.light-theme .bg-dark {
   background-color: #f8fafc !important;
+}
+
+body.light-theme .bg-darker,
+body.light-theme .bg-darker\/95,
+body.light-theme .bg-darker\/80,
+body.light-theme .bg-darker\/60,
+body.light-theme .bg-darker\/50,
+body.light-theme .bg-darker\/30,
+body.light-theme [class*="bg-darker"] {
+  background-color: #ffffff !important;
+}
+
+/* 3. Slate 950 (Preto Absoluto no Dark -> Branco Limpo no Light) */
+body.light-theme .bg-slate-950,
+body.light-theme .bg-slate-950\/95,
+body.light-theme .bg-slate-950\/90,
+body.light-theme .bg-slate-950\/80,
+body.light-theme .bg-slate-950\/60,
+body.light-theme .bg-slate-950\/50,
+body.light-theme [class*="bg-slate-950"] {
+  background-color: #ffffff !important;
+}
+
+/* 4. Slate 900 (Barras, Modais, Dropups, Painéis) */
+body.light-theme .bg-slate-900,
+body.light-theme .bg-slate-900\/95,
+body.light-theme .bg-slate-900\/90,
+body.light-theme .bg-slate-900\/80,
+body.light-theme .bg-slate-900\/70,
+body.light-theme .bg-slate-900\/60,
+body.light-theme [class*="bg-slate-900/9"],
+body.light-theme [class*="bg-slate-900/8"],
+body.light-theme [class*="bg-slate-900/7"],
+body.light-theme [class*="bg-slate-900/6"],
+body.light-theme [class*="bg-slate-900"] {
+  background-color: #ffffff !important;
+}
+
+body.light-theme .bg-slate-900\/50,
+body.light-theme .bg-slate-900\/30,
+body.light-theme .bg-slate-900\/20 {
+  background-color: #f1f5f9 !important;
+}
+
+/* 5. Slate 800 (Cards, Seções, Caixas de Conteúdo) */
+body.light-theme .bg-slate-800,
+body.light-theme .bg-slate-800\/95,
+body.light-theme .bg-slate-800\/90,
+body.light-theme .bg-slate-800\/80,
+body.light-theme .bg-slate-800\/70,
+body.light-theme .bg-slate-800\/60,
+body.light-theme [class*="bg-slate-800/9"],
+body.light-theme [class*="bg-slate-800/8"],
+body.light-theme [class*="bg-slate-800/7"],
+body.light-theme [class*="bg-slate-800/6"] {
+  background-color: #ffffff !important;
+}
+
+body.light-theme .bg-slate-800\/50,
+body.light-theme .bg-slate-800\/40,
+body.light-theme .bg-slate-800\/30,
+body.light-theme .bg-slate-800\/20 {
+  background-color: #f1f5f9 !important;
+}
+
+/* 6. Slate 700 (Botões secundários, Pílulas, Divisores) */
+body.light-theme .bg-slate-700,
+body.light-theme .bg-slate-700\/80,
+body.light-theme .bg-slate-700\/70 {
+  background-color: #e2e8f0 !important;
+}
+
+body.light-theme .bg-slate-700\/60,
+body.light-theme .bg-slate-700\/50,
+body.light-theme .bg-slate-700\/40,
+body.light-theme .bg-slate-700\/30,
+body.light-theme .bg-slate-700\/20 {
+  background-color: #f1f5f9 !important;
+}
+
+/* 7. Barra Lateral (Sidebar): Links, Hover e Ícones no Tema Claro */
+body.light-theme aside {
+  background-color: #ffffff !important;
+  border-right-color: #e2e8f0 !important;
+}
+
+body.light-theme aside nav button {
+  color: #475569 !important;
+}
+
+body.light-theme aside nav button:hover,
+body.light-theme aside nav button:hover * {
+  background-color: #f1f5f9 !important;
+  color: #6d28d9 !important;
+}
+
+body.light-theme .hover\:bg-slate-800\/60:hover,
+body.light-theme .hover\:bg-slate-800\/50:hover,
+body.light-theme .hover\:bg-slate-800\/40:hover,
+body.light-theme .hover\:bg-slate-800\/30:hover,
+body.light-theme .hover\:bg-slate-800:hover,
+body.light-theme [class*="hover:bg-slate-800"]:hover {
+  background-color: #f1f5f9 !important;
+  color: #6d28d9 !important;
+}
+
+body.light-theme .hover\:bg-slate-800\/60:hover *,
+body.light-theme .hover\:bg-slate-800:hover *,
+body.light-theme [class*="hover:bg-slate-800"]:hover * {
+  color: #6d28d9 !important;
+}
+
+body.light-theme .hover\:bg-slate-700\/80:hover,
+body.light-theme .hover\:bg-slate-700\/70:hover,
+body.light-theme .hover\:bg-slate-700\/50:hover,
+body.light-theme .hover\:bg-slate-700\/30:hover,
+body.light-theme .hover\:bg-slate-700:hover,
+body.light-theme .hover\:bg-slate-600:hover,
+body.light-theme [class*="hover:bg-slate-700"]:hover {
+  background-color: #e2e8f0 !important;
+}
+
+/* Ações Rápidas do Dropup na Barra Lateral */
+body.light-theme aside [title*="Mudar para"] {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #334155 !important;
+}
+body.light-theme aside [title*="Mudar para"]:hover {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+body.light-theme aside [title*="Painel Django"] {
+  background-color: #f3e8ff !important;
+  border-color: #d8b4fe !important;
+  color: #6d28d9 !important;
+}
+body.light-theme aside [title*="Painel Django"]:hover {
+  background-color: #ede9fe !important;
+  color: #5b21b6 !important;
+}
+body.light-theme aside [title*="Sair da Conta"] {
+  background-color: #fef2f2 !important;
+  border-color: #fecaca !important;
+  color: #dc2626 !important;
+}
+body.light-theme aside [title*="Sair da Conta"]:hover {
+  background-color: #fee2e2 !important;
+  color: #b91c1c !important;
+}
+
+/* 8. Cores Hex Arbitrárias */
+body.light-theme .bg-\[\#1e293b\],
+body.light-theme .bg-\[\#0f172a\],
+body.light-theme .bg-\[\#020617\],
+body.light-theme .bg-\[\#030712\] {
+  background-color: #ffffff !important;
+}
+
+/* 9. Bordas Suaves e Nítidas no Light Mode */
+body.light-theme .border-slate-900,
+body.light-theme .border-slate-800,
+body.light-theme .border-slate-800\/80,
+body.light-theme .border-slate-800\/50,
+body.light-theme .border-slate-700,
+body.light-theme .border-slate-700\/80,
+body.light-theme .border-slate-700\/60,
+body.light-theme .border-slate-700\/50,
+body.light-theme .border-slate-700\/40,
+body.light-theme .border-slate-600,
+body.light-theme .border-slate-600\/30,
+body.light-theme .border-slate-500,
+body.light-theme [class*="border-slate-800"],
+body.light-theme [class*="border-slate-700"],
+body.light-theme [class*="border-slate-600"] {
+  border-color: #e2e8f0 !important;
+}
+
+/* 10. Hierarquia Tipográfica e Cores de Texto de Alto Contraste */
+body.light-theme .text-white,
+body.light-theme .text-slate-50,
+body.light-theme .text-slate-100 {
+  color: #0f172a !important; /* Azul Marinho Profundo */
+}
+
+body.light-theme .text-slate-200 {
+  color: #1e293b !important;
+}
+
+body.light-theme .text-slate-300 {
   color: #334155 !important;
 }
 
-body.light-theme .bg-dark { background-color: #f8fafc !important; }
-body.light-theme .bg-darker { background-color: #ffffff !important; }
-body.light-theme .bg-darker\/80 { background-color: rgba(255, 255, 255, 0.8) !important; }
-body.light-theme .bg-darker\/50 { background-color: rgba(255, 255, 255, 0.5) !important; }
-body.light-theme .bg-slate-900 { background-color: #f8fafc !important; }
-body.light-theme .bg-slate-900\/50 { background-color: rgba(248, 250, 252, 0.5) !important; }
-body.light-theme .bg-slate-800 { background-color: #f1f5f9 !important; }
-body.light-theme .bg-slate-800\/95 { background-color: rgba(241, 245, 249, 0.95) !important; }
-body.light-theme .bg-slate-800\/80 { background-color: rgba(241, 245, 249, 0.8) !important; }
-body.light-theme .bg-slate-800\/60 { background-color: rgba(241, 245, 249, 0.9) !important; }
-body.light-theme .bg-slate-800\/50 { background-color: rgba(241, 245, 249, 0.5) !important; }
-body.light-theme .bg-slate-800\/20 { background-color: rgba(226, 232, 240, 0.5) !important; }
-body.light-theme .bg-slate-700 { background-color: #e2e8f0 !important; }
-body.light-theme .bg-slate-700\/50 { background-color: rgba(226, 232, 240, 0.5) !important; }
-body.light-theme .bg-\[\#1e293b\] { background-color: #f1f5f9 !important; }
-body.light-theme .bg-\[\#0f172a\] { background-color: #f8fafc !important; }
+body.light-theme .text-slate-400 {
+  color: #475569 !important; /* Contraste perfeito WCAG AAA */
+}
 
-body.light-theme .border-slate-700 { border-color: #e2e8f0 !important; }
-body.light-theme .border-slate-700\/50 { border-color: rgba(226, 232, 240, 0.5) !important; }
-body.light-theme .border-slate-800 { border-color: #cbd5e1 !important; }
-body.light-theme .border-slate-800\/50 { border-color: rgba(203, 213, 225, 0.5) !important; }
-body.light-theme .border-slate-600 { border-color: #cbd5e1 !important; }
+body.light-theme .text-slate-500 {
+  color: #64748b !important;
+}
 
-body.light-theme .text-slate-500 { color: #94a3b8 !important; }
-body.light-theme .text-slate-400 { color: #64748b !important; }
-body.light-theme .text-slate-300 { color: #475569 !important; }
-body.light-theme .text-slate-200 { color: #334155 !important; }
+body.light-theme .text-slate-600 {
+  color: #475569 !important;
+}
 
-/* Inverter o texto branco para escuro não light mode */
-body.light-theme .text-white { color: #0f172a !important; }
+body.light-theme .hover\:text-white:hover {
+  color: #0f172a !important;
+}
 
-/* Proteção para os botões coloridos: eles devem continuar com texto branco */
+/* 11. Cores de Destaque / Badges / Status (Alto contraste no fundo claro) */
+body.light-theme .text-amber-400,
+body.light-theme .text-amber-300 {
+  color: #b45309 !important; /* Âmbar nítido */
+}
+
+body.light-theme .bg-amber-500\/10 {
+  background-color: #fef3c7 !important;
+  border-color: #fde68a !important;
+}
+
+body.light-theme .text-yellow-400,
+body.light-theme .text-yellow-300 {
+  color: #a16207 !important;
+}
+
+body.light-theme .text-emerald-400,
+body.light-theme .text-emerald-300 {
+  color: #047857 !important; /* Verde Esmeralda legível */
+}
+
+body.light-theme .text-green-400,
+body.light-theme .text-green-300 {
+  color: #15803d !important;
+}
+
+body.light-theme .text-purple-400,
+body.light-theme .text-purple-300 {
+  color: #6d28d9 !important; /* Roxo vibrante */
+}
+
+body.light-theme .text-indigo-400,
+body.light-theme .text-indigo-300 {
+  color: #4338ca !important;
+}
+
+body.light-theme .text-blue-400,
+body.light-theme .text-blue-300 {
+  color: #1d4ed8 !important;
+}
+
+body.light-theme .text-cyan-400,
+body.light-theme .text-cyan-300 {
+  color: #0e7490 !important;
+}
+
+body.light-theme .text-red-400,
+body.light-theme .text-red-300 {
+  color: #b91c1c !important; /* Vermelho legível */
+}
+
+/* 12. Inputs, Textareas e Selects (Solução para Barras de Busca e Formulários) */
+body.light-theme input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="file"]),
+body.light-theme textarea,
+body.light-theme select {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+body.light-theme input:focus,
+body.light-theme textarea:focus,
+body.light-theme select:focus {
+  background-color: #ffffff !important;
+  border-color: #6d28d9 !important;
+  box-shadow: 0 0 0 2px rgba(109, 40, 217, 0.15) !important;
+}
+
+body.light-theme ::placeholder,
+body.light-theme .placeholder-slate-400::placeholder,
+body.light-theme .placeholder-slate-500::placeholder {
+  color: #64748b !important;
+  opacity: 1 !important;
+}
+
+/* 13. Teclas e Atalhos (KBD) no Editor e Modais */
+body.light-theme kbd {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #334155 !important;
+}
+
+/* 14. Proteção Absoluta para Botões Sólidos Coloridos (Permanecem com Texto Branco!) */
 body.light-theme .bg-primary,
-body.light-theme .bg-accent,
-body.light-theme .bg-red-500,
+body.light-theme .bg-primary *,
+body.light-theme .bg-secondary,
+body.light-theme .bg-secondary *,
+body.light-theme .bg-purple-600,
+body.light-theme .bg-purple-600 *,
+body.light-theme .bg-indigo-600,
+body.light-theme .bg-indigo-600 *,
+body.light-theme .bg-blue-600,
+body.light-theme .bg-blue-600 *,
+body.light-theme .bg-emerald-600,
+body.light-theme .bg-emerald-600 *,
 body.light-theme .bg-emerald-500,
-body.light-theme button.bg-slate-700:hover {
+body.light-theme .bg-emerald-500 *,
+body.light-theme .bg-red-500,
+body.light-theme .bg-red-500 *,
+body.light-theme .bg-red-600,
+body.light-theme .bg-red-600 *,
+body.light-theme button.bg-slate-700:hover,
+body.light-theme .btn-primary,
+body.light-theme .btn-primary * {
   color: #ffffff !important;
 }
 
-/* Proteção para a Typography (Prose) na Apostila */
-body.light-theme .prose {
-  color: #334155 !important;
+/* 15. Pílulas de Contas Demo (Tela de Login) */
+body.light-theme .bg-purple-900\/40 {
+  background-color: #f3e8ff !important;
+  border-color: #d8b4fe !important;
+  color: #6d28d9 !important;
 }
-body.light-theme .prose :where(h1, h2, h3, h4, h5, h6, strong, b, th) {
+body.light-theme .bg-indigo-900\/40 {
+  background-color: #e0e7ff !important;
+  border-color: #c7d2fe !important;
+  color: #4338ca !important;
+}
+body.light-theme .bg-emerald-950\/50 {
+  background-color: #d1fae5 !important;
+  border-color: #a7f3d0 !important;
+  color: #047857 !important;
+}
+
+/* 16. Caixas de Destaque / Callouts na Apostila */
+body.light-theme .callout-dica div:first-child { color: #b45309 !important; }
+body.light-theme .callout-dica div:last-child { color: #78350f !important; }
+
+body.light-theme .callout-atencao div:first-child { color: #b91c1c !important; }
+body.light-theme .callout-atencao div:last-child { color: #7f1d1d !important; }
+
+body.light-theme .callout-conceito div:first-child { color: #6d28d9 !important; }
+body.light-theme .callout-conceito div:last-child { color: #581c87 !important; }
+
+body.light-theme .callout-exemplo div:first-child { color: #047857 !important; }
+body.light-theme .callout-exemplo div:last-child { color: #064e3b !important; }
+
+/* 17. Editor de Apostila e Tipografia (Prose) */
+body.light-theme .editor-content {
+  color: #1e293b !important;
+}
+body.light-theme .editor-content:empty:before {
+  color: #94a3b8 !important;
+}
+body.light-theme .editor-content h1,
+body.light-theme .editor-content h2,
+body.light-theme .editor-content h3 {
   color: #0f172a !important;
 }
-body.light-theme .prose :where(a) {
-  color: #6d28d9 !important; /* primary */
+body.light-theme .editor-content td,
+body.light-theme .editor-content th {
+  border-color: #cbd5e1 !important;
 }
-body.light-theme .prose :where(code) {
+body.light-theme .editor-content blockquote {
+  background-color: #f1f5f9 !important;
+  border-left-color: #6d28d9 !important;
+  color: #334155 !important;
+}
+
+body.light-theme .prose,
+body.light-theme .prose-invert {
+  color: #334155 !important;
+}
+body.light-theme .prose :where(h1, h2, h3, h4, h5, h6, strong, b, th),
+body.light-theme .prose-invert :where(h1, h2, h3, h4, h5, h6, strong, b, th) {
+  color: #0f172a !important;
+}
+body.light-theme .prose :where(a),
+body.light-theme .prose-invert :where(a) {
+  color: #6d28d9 !important;
+}
+body.light-theme .prose :where(code):not(pre code),
+body.light-theme .prose-invert :where(code):not(pre code) {
   color: #0f172a !important;
   background-color: #f1f5f9 !important;
 }
-body.light-theme .prose :where(blockquote) {
-  color: #475569 !important;
-  background-color: rgba(241, 245, 249, 0.8) !important;
+body.light-theme .prose :where(blockquote),
+body.light-theme .prose-invert :where(blockquote) {
+  color: #334155 !important;
+  background-color: #f1f5f9 !important;
+  border-left-color: #6d28d9 !important;
 }
 
+/* 18. Sombras refinadas para separação visual contra o fundo claro */
+body.light-theme .shadow-2xl,
+body.light-theme .shadow-xl {
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04) !important;
+}
+
+/* 19. Barra de Rolagem Refinada no Tema Claro */
+body.light-theme ::-webkit-scrollbar-track {
+  background: #f1f5f9 !important;
+}
+body.light-theme ::-webkit-scrollbar-thumb {
+  background: #cbd5e1 !important;
+  border-radius: 9999px !important;
+}
+body.light-theme ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8 !important;
+}
+
+/* ==========================================================================
+   20. UTILITÁRIOS GLOBAIS DE RESPONSIVIDADE E MOBILE
+   ========================================================================== */
+
+/* Suporte para iPhone com barra inferior (Home Indicator) */
+.safe-area-bottom {
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom)) !important;
+}
+
+/* Ocultar barra de rolagem mantendo a rolagem fluida por toque */
+.no-scrollbar::-webkit-scrollbar,
+.scrollbar-hide::-webkit-scrollbar {
+  display: none !important;
+}
+.no-scrollbar,
+.scrollbar-hide {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+/* Rolagem horizontal suave por toque no celular */
+.touch-pan-x {
+  touch-action: pan-x;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ==========================================================================
+   21. PERSONALIZAÇÕES DA LOJA (MOLDURAS DE AVATAR & TEMAS)
+   Compatibilidade nativa 100% com Tailwind CSS v4
+   ========================================================================== */
+
+/* --- Molduras de Avatar --- */
+.store-frame-cyber-volt {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 25px rgba(59, 130, 246, 0.95), 0 0 12px rgba(192, 132, 252, 0.8) !important;
+  outline: 3px solid #c084fc !important;
+  outline-offset: 2px !important;
+  animation: electricPulse 3s ease-in-out infinite alternate;
+}
+
+.store-frame-neon-cyberpunk {
+  border-color: #22d3ee !important;
+  box-shadow: 0 0 22px rgba(34, 211, 238, 0.95), 0 0 14px rgba(217, 70, 239, 0.75) !important;
+  outline: 3px solid #d946ef !important;
+  outline-offset: 2px !important;
+  animation: cyberGlow 3.5s ease-in-out infinite alternate;
+}
+
+.store-frame-dourada-real {
+  border-color: #fbbf24 !important;
+  box-shadow: 0 0 25px rgba(251, 191, 36, 0.95), 0 0 12px rgba(245, 158, 11, 0.8) !important;
+  outline: 3px solid #fde047 !important;
+  outline-offset: 2px !important;
+}
+
+.store-frame-chama-draconica {
+  border-color: #f97316 !important;
+  box-shadow: 0 0 25px rgba(249, 115, 22, 0.95), 0 0 12px rgba(239, 68, 68, 0.8) !important;
+  outline: 3px solid #fbbf24 !important;
+  outline-offset: 2px !important;
+  animation: flameFlicker 2.5s ease-in-out infinite alternate;
+}
+
+.store-frame-glacial-artico {
+  border-color: #67e8f9 !important;
+  box-shadow: 0 0 25px rgba(103, 232, 249, 0.95), 0 0 12px rgba(96, 165, 250, 0.8) !important;
+  outline: 3px solid #60a5fa !important;
+  outline-offset: 2px !important;
+}
+
+.store-frame-ametista-astral {
+  border-color: #a855f7 !important;
+  box-shadow: 0 0 25px rgba(168, 85, 247, 0.95), 0 0 12px rgba(232, 121, 249, 0.8) !important;
+  outline: 3px solid #e879f9 !important;
+  outline-offset: 2px !important;
+}
+
+.store-frame-egide-titanio {
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 0 25px rgba(203, 213, 225, 0.95), 0 0 12px rgba(129, 140, 248, 0.8) !important;
+  outline: 3px solid #818cf8 !important;
+  outline-offset: 2px !important;
+}
+
+.store-frame-custom {
+  border-color: #6d28d9 !important;
+  box-shadow: 0 0 20px rgba(109, 40, 217, 0.85) !important;
+  outline: 2px solid #38bdf8 !important;
+  outline-offset: 2px !important;
+}
+
+@keyframes electricPulse {
+  0% { box-shadow: 0 0 18px rgba(59, 130, 246, 0.8), 0 0 8px rgba(192, 132, 252, 0.6); }
+  100% { box-shadow: 0 0 28px rgba(59, 130, 246, 1), 0 0 16px rgba(192, 132, 252, 0.9); }
+}
+
+@keyframes cyberGlow {
+  0% { box-shadow: 0 0 16px rgba(34, 211, 238, 0.8), 0 0 10px rgba(217, 70, 239, 0.6); }
+  100% { box-shadow: 0 0 26px rgba(34, 211, 238, 1), 0 0 18px rgba(217, 70, 239, 0.9); }
+}
+
+@keyframes flameFlicker {
+  0% { box-shadow: 0 0 18px rgba(249, 115, 22, 0.8), 0 0 8px rgba(239, 68, 68, 0.6); }
+  100% { box-shadow: 0 0 30px rgba(249, 115, 22, 1), 0 0 15px rgba(251, 191, 36, 0.9); }
+}
+
+/* --- Temas da Loja (Banners e Cartões) --- */
+.store-theme-cyberpunk {
+  background: linear-gradient(135deg, rgba(88, 28, 135, 0.95) 0%, rgba(15, 23, 42, 0.95) 50%, rgba(8, 51, 68, 0.95) 100%) !important;
+  border-color: rgba(217, 70, 239, 0.6) !important;
+  box-shadow: 0 0 35px rgba(217, 70, 239, 0.35) !important;
+}
+
+.store-theme-matrix {
+  background: linear-gradient(135deg, rgba(6, 78, 59, 0.95) 0%, rgba(15, 23, 42, 0.95) 50%, rgba(19, 78, 74, 0.95) 100%) !important;
+  border-color: rgba(16, 185, 129, 0.6) !important;
+  box-shadow: 0 0 35px rgba(16, 185, 129, 0.35) !important;
+}
+
+.store-theme-synthwave {
+  background: linear-gradient(135deg, rgba(131, 24, 67, 0.95) 0%, rgba(59, 7, 100, 0.95) 50%, rgba(120, 53, 15, 0.95) 100%) !important;
+  border-color: rgba(236, 72, 153, 0.6) !important;
+  box-shadow: 0 0 35px rgba(236, 72, 153, 0.35) !important;
+}
+
+.store-theme-cosmic {
+  background: linear-gradient(135deg, rgba(49, 46, 129, 0.95) 0%, rgba(59, 7, 100, 0.95) 50%, rgba(15, 23, 42, 0.95) 100%) !important;
+  border-color: rgba(129, 140, 248, 0.6) !important;
+  box-shadow: 0 0 35px rgba(129, 140, 248, 0.35) !important;
+}
+
+.store-theme-forest {
+  background: linear-gradient(135deg, rgba(6, 78, 59, 0.95) 0%, rgba(15, 118, 110, 0.95) 50%, rgba(15, 23, 42, 0.95) 100%) !important;
+  border-color: rgba(52, 211, 153, 0.6) !important;
+  box-shadow: 0 0 35px rgba(52, 211, 153, 0.35) !important;
+}
+
+/* Efeitos Sutis de Tema Global no App */
+body.theme-cyberpunk {
+  --color-primary: #d946ef;
+}
+body.theme-matrix {
+  --color-primary: #10b981;
+}
+body.theme-synthwave {
+  --color-primary: #ec4899;
+}
+body.theme-cosmic {
+  --color-primary: #818cf8;
+}
+body.theme-forest {
+  --color-primary: #34d399;
+}
+
+/* ==========================================================================
+   VS CODE IDE CODE BLOCKS & SYNTAX HIGHLIGHTING
+   ========================================================================== */
+.vscode-ide-container {
+  background-color: #1e1e1e !important;
+  border: 1px solid #334155 !important;
+  border-radius: 0.5rem !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5) !important;
+  overflow: hidden !important;
+  margin: 1.5rem 0 !important;
+}
+
+.vscode-ide-header {
+  background-color: #252526 !important;
+  border-bottom: 1px solid #334155 !important;
+}
+
+.vscode-pre code {
+  font-family: 'Consolas', 'Fira Code', 'Courier New', monospace !important;
+}
+
+/* Tokens Syntax Highlighting */
+.token.comment, .token.prolog, .token.doctype, .token.cdata {
+  color: #6a9955 !important;
+  font-style: italic !important;
+}
+.token.punctuation {
+  color: #d4d4d4 !important;
+}
+.token.keyword, .token.selector, .token.important, .token.atrule {
+  color: #c586c0 !important;
+  font-weight: 600 !important;
+}
+.token.function, .token.class-name {
+  color: #dcdcaa !important;
+}
+.token.string, .token.char, .token.attr-value {
+  color: #ce9178 !important;
+}
+.token.number, .token.boolean {
+  color: #b5cea8 !important;
+}
+.token.operator, .token.entity, .token.url {
+  color: #d4d4d4 !important;
+}
+.token.variable, .token.property, .token.constant {
+  color: #9cdcfe !important;
+}
+.token.tag, .token.regex {
+  color: #569cd6 !important;
+}
+.token.attr-name {
+  color: #9cdcfe !important;
+}
+
+/* ==========================================================================
+   INTERACTIVE TABLE STYLES & CELL SELECTION
+   ========================================================================== */
+.interactive-table th,
+.interactive-table td {
+  position: relative;
+  transition: background-color 0.15s ease, outline 0.15s ease;
+}
+.interactive-table td:focus,
+.interactive-table th:focus,
+.interactive-table td.selected-cell,
+.interactive-table th.selected-cell {
+  outline: 2px solid #38bdf8 !important;
+  outline-offset: -2px !important;
+  background-color: rgba(56, 189, 248, 0.12) !important;
+}
+
+/* Image Selection Outline */
+img.selected-img {
+  outline: 3px solid #38bdf8 !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.4) !important;
+}
 

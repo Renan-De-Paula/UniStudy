@@ -1,9 +1,9 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Play, Pause, RotateCcw, Users, Coffee, Brain, Volume2, VolumeX } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 function SalaFoco() {
-  const { currentUser } = useAuth();
+  const { currentUser, addXP } = useAuth();
   
   // Modos de tempo: Pomodoro (25m), Curto (5m), Longo (15m)
   const [modo, setModo] = useState('pomodoro');
@@ -27,13 +27,15 @@ function SalaFoco() {
       }, 1000);
     } else if (timeLeft === 0 && isActive) {
       setIsActive(false);
-      if (soundEnabled) {
-        // play sound if we had an audio file
+      if (modo === 'pomodoro') {
+        if (addXP) addXP(25);
+        alert("🎉 Incrível! Você concluiu um ciclo de foco de 25 minutos e ganhou +25 XP!");
+      } else {
         alert("Tempo finalizado! Hora de descansar (ou focar).");
       }
     }
     return () => clearInterval(interval);
-  }, [isActive, timeLeft, soundEnabled]);
+  }, [isActive, timeLeft, soundEnabled, modo, addXP]);
 
   const toggleTimer = () => setIsActive(!isActive);
   
@@ -69,11 +71,11 @@ function SalaFoco() {
   const progress = ((getTotalSeconds() - timeLeft) / getTotalSeconds()) * 100;
 
   return (
-    <div className="w-full max-w-6xl mx-auto p-4 md:p-8 animate-fade-in">
-      <div className="flex justify-between items-center mb-10">
+    <div className="w-full max-w-6xl mx-auto p-3 sm:p-6 md:p-8 animate-fade-in">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-10">
         <div>
-          <h2 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent mb-2">Sala de Foco Coletivo</h2>
-          <p className="text-slate-400 text-lg">Estude junto com outras pessoas usando a técnica Pomodoro.</p>
+          <h2 className="text-2xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent mb-2">Sala de Foco Coletivo</h2>
+          <p className="text-slate-400 text-lg">Estude junto com colegas usando a técnica Pomodoro e ganhe XP a cada ciclo concluído.</p>
         </div>
       </div>
 
@@ -85,24 +87,24 @@ function SalaFoco() {
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
           
           {/* Controls */}
-          <div className="flex bg-slate-800/80 backdrop-blur rounded-full p-1 mb-12 border border-slate-700">
+          <div className="flex flex-wrap justify-center bg-slate-800/80 backdrop-blur rounded-2xl sm:rounded-full p-1 sm:p-1.5 mb-8 sm:mb-12 border border-slate-700 gap-1">
             <button 
               onClick={() => changeModo('pomodoro')} 
-              className={`px-6 py-2 rounded-full font-bold transition-all flex items-center gap-2 ${modo === 'pomodoro' ? 'bg-primary text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
+              className={`px-3.5 sm:px-6 py-2 rounded-xl sm:rounded-full font-bold transition-all text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 active:scale-95 ${modo === 'pomodoro' ? 'bg-primary text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
             >
-              <Brain size={16} /> Foco (25m)
+              <Brain size={15} /> Foco (+25 XP)
             </button>
             <button 
               onClick={() => changeModo('curto')} 
-              className={`px-6 py-2 rounded-full font-bold transition-all flex items-center gap-2 ${modo === 'curto' ? 'bg-accent text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
+              className={`px-3.5 sm:px-6 py-2 rounded-xl sm:rounded-full font-bold transition-all text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 active:scale-95 ${modo === 'curto' ? 'bg-accent text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
             >
-              <Coffee size={16} /> Pausa Curta (5m)
+              <Coffee size={15} /> Pausa Curta (5m)
             </button>
             <button 
               onClick={() => changeModo('longo')} 
-              className={`px-6 py-2 rounded-full font-bold transition-all flex items-center gap-2 ${modo === 'longo' ? 'bg-blue-500 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
+              className={`px-3.5 sm:px-6 py-2 rounded-xl sm:rounded-full font-bold transition-all text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 active:scale-95 ${modo === 'longo' ? 'bg-blue-500 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
             >
-              <Coffee size={16} /> Pausa Longa (15m)
+              <Coffee size={15} /> Pausa Longa (15m)
             </button>
           </div>
 
@@ -170,13 +172,13 @@ function SalaFoco() {
             {/* Current User */}
             <div className="flex items-center gap-4 p-3 rounded-xl bg-slate-800/50 border border-slate-700">
               <div className="relative">
-                <img src={currentUser?.avatar || `https://api.dicebear.com/7.x/adventurer/svg?seed=${currentUser?.first_name}`} alt="Você" className="w-12 h-12 rounded-full bg-slate-700 object-cover" />
+                <img src={currentUser?.avatar || `https://api.dicebear.com/7.x/adventurer/svg?seed=${currentUser?.first_name || 'user'}`} alt="Você" className="w-12 h-12 rounded-full bg-slate-700 object-cover" />
                 <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-slate-800 rounded-full"></div>
               </div>
               <div className="flex-1">
-                <h4 className="text-white font-bold">{currentUser?.first_name || 'Você'} (Você)</h4>
+                <h4 className="text-white font-bold">{currentUser?.first_name || currentUser?.username || 'Você'} (Você)</h4>
                 <p className="text-xs text-primary font-medium flex items-center gap-1">
-                  {isActive && modo === 'pomodoro' ? 'Focado' : isActive ? 'Em Pausa' : 'Preparando...'}
+                  {isActive && modo === 'pomodoro' ? 'Focado (+25 XP ao final)' : isActive ? 'Em Pausa' : 'Preparando...'}
                 </p>
               </div>
             </div>
@@ -201,7 +203,7 @@ function SalaFoco() {
           
           <div className="mt-6 pt-4 border-t border-slate-700 text-center">
             <p className="text-xs text-slate-500">
-              Focar em grupo aumenta a chance de conclusão das metas em 70%.
+              Focar em grupo aumenta a taxa de retenção do aprendizado.
             </p>
           </div>
         </div>
