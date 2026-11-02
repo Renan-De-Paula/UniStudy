@@ -84,18 +84,49 @@ function Perfil() {
   }, [currentUser]);
 
   const handleAvatarUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (file.type === 'image/jpeg' || file.type === 'image/png') {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          setAvatar(event.target.result);
-        };
-        reader.readAsDataURL(file);
-      } else {
-        alert('Apenas imagens PNG ou JPG são permitidas.');
-      }
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Por favor, selecione um arquivo de imagem válido (PNG, JPG, JPEG ou WebP).');
+      return;
     }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const maxSize = 400;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxSize) {
+            height = Math.round((height * maxSize) / width);
+            width = maxSize;
+          }
+        } else {
+          if (height > maxSize) {
+            width = Math.round((width * maxSize) / height);
+            height = maxSize;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+        setAvatar(compressedDataUrl);
+      };
+      img.onerror = () => {
+        setAvatar(event.target.result);
+      };
+      img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSaveProfile = async (e) => {
@@ -114,15 +145,28 @@ function Perfil() {
         avatar: avatar
       };
 
-      const response = await api.patch('/accounts/me/', payload);
-      updateCurrentUser(response.data);
+      // Tenta /auth/me/ (padrão Django) e fallback para /accounts/me/
+      let response;
+      try {
+        response = await api.patch('/auth/me/', payload);
+      } catch (errAuth) {
+        response = await api.patch('/accounts/me/', payload);
+      }
+
+      if (updateCurrentUser) {
+        updateCurrentUser(response.data);
+      }
       setSuccessMsg('Perfil atualizado com sucesso!');
       setTimeout(() => {
         setActiveTab('overview');
         setSuccessMsg('');
       }, 1200);
     } catch (err) {
-      setErrorMsg('Não foi possível salvar as alterações. Tente novamente.');
+      console.error('Erro ao salvar perfil:', err);
+      const detail = err.response?.data?.detail || 
+                     (typeof err.response?.data === 'string' ? err.response?.data : null) ||
+                     (err.response?.data ? Object.values(err.response.data).flat().join(', ') : null);
+      setErrorMsg(detail || 'Não foi possível salvar as alterações. Tente novamente.');
     } finally {
       setIsSaving(false);
     }
@@ -266,14 +310,21 @@ function Perfil() {
         {/* AVATAR COM SUPORTE A MOLDURAS ADQUIRIDAS */}
         <div className="relative group shrink-0">
           <AvatarWithFrame 
-            src={currentUser?.avatar} 
+            src={activeTab === 'edit' && avatar ? avatar : currentUser?.avatar} 
             size="xl" 
             frame={activeFrame} 
             badge={activeBadge} 
             showBadge={false} 
           />
           <button 
-            onClick={() => setActiveTab('edit')}
+            type="button"
+            onClick={() => {
+              if (activeTab === 'edit') {
+                fileInputRef.current?.click();
+              } else {
+                setActiveTab('edit');
+              }
+            }}
             className="absolute bottom-1 right-1 sm:bottom-2 sm:right-2 p-2 sm:p-2.5 bg-primary border-2 border-slate-900 rounded-full text-white hover:scale-110 transition-transform shadow-lg cursor-pointer z-10"
             title="Alterar Foto de Perfil"
           >
@@ -626,11 +677,24 @@ function Perfil() {
                       );
                     })}
 
+                    {avatar && avatar.startsWith('data:image/') && (
+                      <div
+                        className="w-12 h-12 rounded-full overflow-hidden bg-slate-700 border-2 border-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.8)] scale-105 relative cursor-pointer group"
+                        onClick={() => fileInputRef.current?.click()}
+                        title="Foto enviada (clique para trocar)"
+                      >
+                        <img src={avatar} alt="Foto Carregada" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                          <Upload size={14} className="text-white" />
+                        </div>
+                      </div>
+                    )}
+
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
                       className="w-12 h-12 rounded-full border-2 border-dashed border-slate-600 hover:border-primary flex items-center justify-center text-slate-400 hover:text-white transition-colors bg-slate-800"
-                      title="Enviar foto do computador"
+                      title="Enviar foto do computador ou celular"
                     >
                       <Upload size={18} />
                     </button>
@@ -638,7 +702,7 @@ function Perfil() {
                       type="file" 
                       ref={fileInputRef} 
                       onChange={handleAvatarUpload} 
-                      accept=".png, .jpg, .jpeg" 
+                      accept="image/png, image/jpeg, image/jpg, image/webp" 
                       className="hidden" 
                     />
                   </div>

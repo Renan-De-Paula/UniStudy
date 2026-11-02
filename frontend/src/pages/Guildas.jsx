@@ -50,7 +50,18 @@ function Guildas() {
     try {
       setLoadingGuilds(true);
       const res = await api.get('/squads/squads/');
-      setGuildas(res.data);
+      const list = res.data || [];
+      setGuildas(list);
+
+      // Se houver uma guilda selecionada (ex: recomendada pela IA)
+      const selectedId = localStorage.getItem('selected_guild_id');
+      if (selectedId) {
+        localStorage.removeItem('selected_guild_id');
+        const target = list.find(g => String(g.id) === String(selectedId));
+        if (target) {
+          setActiveGuild(target);
+        }
+      }
     } catch (err) {
       console.error('Erro ao buscar guildas:', err);
     } finally {
@@ -215,6 +226,18 @@ function Guildas() {
       setActiveGuild(updated);
     } catch (err) {
       const msg = err.response?.data?.error || 'Erro ao entrar na guilda.';
+      if (msg.toLowerCase().includes('já é membro')) {
+        const target = guildas.find(g => g.id === guildId);
+        if (target) {
+          setActiveGuild(target);
+          return;
+        }
+        try {
+          const updated = (await api.get(`/squads/squads/${guildId}/`)).data;
+          setActiveGuild(updated);
+          return;
+        } catch (_) {}
+      }
       alert(msg);
     }
   };

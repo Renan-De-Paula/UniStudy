@@ -48,11 +48,21 @@ export const submitQuiz = async (quizId, answers) => {
 
 // Solicitação de Cargo Docente / Professor
 export const getTeacherRequestStatus = async () => {
-  const response = await api.get('/accounts/teacher-request/');
-  return response.data;
+  try {
+    const response = await api.get('/auth/teacher-request/');
+    return response.data;
+  } catch (e) {
+    const response = await api.get('/accounts/teacher-request/');
+    return response.data;
+  }
 };
 
 export const submitTeacherRequest = async (payload) => {
-  const response = await api.post('/accounts/teacher-request/', payload);
-  return response.data;
+  try {
+    const response = await api.post('/auth/teacher-request/', payload);
+    return response.data;
+  } catch (e) {
+    const response = await api.post('/accounts/teacher-request/', payload);
+    return response.data;
+  }
 };
