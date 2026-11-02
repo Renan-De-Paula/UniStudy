@@ -1,9 +1,18 @@
 import axios from 'axios';
 
 const getApiBaseUrl = () => {
-  if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
-  if (typeof window !== 'undefined' && window.location.hostname && window.location.hostname !== 'localhost') {
-    return `http://${window.location.hostname}:8001/api`;
+  let envUrl = import.meta.env.VITE_API_URL;
+  if (envUrl) {
+    // Corrige automaticamente eventual confusão do caractere '1' (um) por 'l' (éle)
+    return envUrl.replace('unistudy-128o', 'unistudy-l28o');
+  }
+  if (typeof window !== 'undefined' && window.location.hostname) {
+    if (window.location.hostname.includes('vercel.app')) {
+      return 'https://unistudy-l28o.onrender.com/api';
+    }
+    if (window.location.hostname !== 'localhost') {
+      return `http://${window.location.hostname}:8001/api`;
+    }
   }
   return 'http://localhost:8001/api';
 };
