@@ -24,11 +24,12 @@ function RecomendacaoGuilda({ trilhas, setActiveTab }) {
       const res = await api.get('/squads/squads/');
       const allGuilds = res.data || [];
 
-      // 2. Verifica se já existe uma guilda com esse tema
-      let targetGuild = allGuilds.find(g => 
-        g.title.toLowerCase().includes(tema.toLowerCase()) || 
-        tema.toLowerCase().includes(g.title.toLowerCase())
-      );
+      // 2. Verifica se já existe uma guilda com esse tema específico
+      let targetGuild = allGuilds.find(g => {
+        const t = (g.title || '').trim().toLowerCase();
+        const cleanTema = tema.trim().toLowerCase();
+        return t === `guilda: ${cleanTema}` || t === cleanTema || (cleanTema.length >= 4 && t.includes(cleanTema));
+      });
 
       // 3. Se não existir, CRIA AUTOMATICAMENTE a guilda
       if (!targetGuild) {

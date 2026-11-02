@@ -83,7 +83,15 @@ function Guildas() {
       const selectedId = localStorage.getItem('selected_guild_id');
       if (selectedId) {
         localStorage.removeItem('selected_guild_id');
-        const target = list.find(g => String(g.id) === String(selectedId));
+        let target = list.find(g => String(g.id) === String(selectedId));
+        if (!target) {
+          try {
+            const fetched = (await api.get(`/squads/squads/${selectedId}/`)).data;
+            if (fetched) {
+              target = fetched;
+            }
+          } catch (_) {}
+        }
         if (target) {
           setActiveGuild(target);
         }
