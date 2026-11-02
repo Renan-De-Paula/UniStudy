@@ -39,11 +39,14 @@ function Conquistas() {
 
     try {
       setLoadingActionId(item.id);
-      await buyItem(item.id);
+      const res = await buyItem(item.id);
       alert(`🎉 Parabéns! Você adquiriu "${item.name}". O item já está ativo na sua conta!`);
       
       if (updateCurrentUser) {
-        updateCurrentUser({ xp: Math.max(0, (currentUser?.xp || 0) - item.cost_xp) });
+        updateCurrentUser({ 
+          xp: Math.max(0, (currentUser?.xp || 0) - item.cost_xp),
+          equipped_items: res?.equipped_items || currentUser?.equipped_items
+        });
       }
 
       setStoreItems(prev => prev.map(it => it.id === item.id ? { ...it, purchased: true, is_active: true } : it));

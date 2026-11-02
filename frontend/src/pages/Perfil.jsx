@@ -252,6 +252,10 @@ function Perfil() {
 
   const handleExportCV = () => {
     const cvWindow = window.open('', '_blank');
+    if (!cvWindow) {
+      alert('Por favor, permita pop-ups no seu navegador para exportar o currículo.');
+      return;
+    }
     const trilhasHtml = trilhas.map(t => {
       const concluidos = t.topicos_concluidos ? t.topicos_concluidos.length : 0;
       const total = t.topicos ? t.topicos.length : 0;

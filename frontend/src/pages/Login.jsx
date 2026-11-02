@@ -26,19 +26,51 @@ function Login() {
   const [customAvatar, setCustomAvatar] = useState(null);
 
   const handleAvatarUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (file.type === 'image/jpeg' || file.type === 'image/png') {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          setCustomAvatar(event.target.result);
-          setAvatarOption('custom');
-        };
-        reader.readAsDataURL(file);
-      } else {
-        alert('Apenas imagens PNG ou JPG são permitidas.');
-      }
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Por favor, selecione um arquivo de imagem válido (PNG, JPG, JPEG ou WebP).');
+      return;
     }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const maxSize = 400;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxSize) {
+            height = Math.round((height * maxSize) / width);
+            width = maxSize;
+          }
+        } else {
+          if (height > maxSize) {
+            width = Math.round((width * maxSize) / height);
+            height = maxSize;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+        setCustomAvatar(compressedDataUrl);
+        setAvatarOption('custom');
+      };
+      img.onerror = () => {
+        setCustomAvatar(event.target.result);
+        setAvatarOption('custom');
+      };
+      img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
   };
 
   const triggerFileUpload = () => {
@@ -229,7 +261,7 @@ function Login() {
                   type="file" 
                   ref={fileInputRef} 
                   onChange={handleAvatarUpload} 
-                  accept=".png, .jpg, .jpeg" 
+                  accept="image/png, image/jpeg, image/jpg, image/webp" 
                   className="hidden" 
                 />
               </div>
