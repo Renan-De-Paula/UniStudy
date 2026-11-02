@@ -4,7 +4,8 @@ import api from '../services/api';
 import { 
   Users, Crown, Medal, MessageSquare, Target, Trophy, Hash, Send, ChevronLeft, 
   Settings, Clock, Play, Pause, RotateCcw, Pin, Reply, PlusCircle, Bot, X, 
-  PenTool, Eraser, Circle, Loader2, AlertCircle, Sparkles, CheckCircle2, LogOut, Plus
+  PenTool, Eraser, Circle, Loader2, AlertCircle, Sparkles, CheckCircle2, LogOut, Plus,
+  Trash2, Shield, UserX, UserPlus, AlertTriangle, FileText
 } from 'lucide-react';
 
 function Guildas() {
@@ -28,6 +29,31 @@ function Guildas() {
   const [newMaxMembers, setNewMaxMembers] = useState(10);
   const [modalLoading, setModalLoading] = useState(false);
   const [modalError, setModalError] = useState('');
+
+  // Modal de Gestão da Guilda (Líder / Admin)
+  const [showManageModal, setShowManageModal] = useState(false);
+  const [manageTab, setManageTab] = useState('info'); // 'info', 'members', 'audit'
+  const [editTitle, setEditTitle] = useState('');
+  const [editDesc, setEditDesc] = useState('');
+  const [editShift, setEditShift] = useState('Noite');
+  const [editSkills, setEditSkills] = useState('');
+  const [editMaxMembers, setEditMaxMembers] = useState(10);
+  const [manageLoading, setManageLoading] = useState(false);
+  const [manageNotice, setManageNotice] = useState('');
+  const [manageError, setManageError] = useState('');
+
+  // Convite de membro
+  const [inviteIdentifier, setInviteIdentifier] = useState('');
+  const [inviteLoading, setInviteLoading] = useState(false);
+
+  // Expulsão com auditoria obrigatória
+  const [memberToExpel, setMemberToExpel] = useState(null);
+  const [expulsionReason, setExpulsionReason] = useState('');
+  const [expellingLoading, setExpellingLoading] = useState(false);
+
+  // Logs de Auditoria de Expulsões
+  const [expulsionLogs, setExpulsionLogs] = useState([]);
+  const [loadingLogs, setLoadingLogs] = useState(false);
 
   const [replyingTo, setReplyingTo] = useState(null);
   const [pinnedMessageId, setPinnedMessageId] = useState(null);
@@ -252,6 +278,155 @@ function Guildas() {
     } catch (err) {
       const msg = err.response?.data?.error || 'Erro ao sair da guilda.';
       alert(msg);
+    }
+  };
+
+  // 6.1 Sincroniza dados do formulário de gestão ao selecionar a guilda
+  useEffect(() => {
+    if (activeGuild) {
+      setEditTitle(activeGuild.title || '');
+      setEditDesc(activeGuild.description || '');
+      setEditShift(activeGuild.available_shifts || 'Noite');
+      setEditSkills(Array.isArray(activeGuild.needed_skills) ? activeGuild.needed_skills.join(', ') : (activeGuild.needed_skills || ''));
+      setEditMaxMembers(activeGuild.max_members || 10);
+      setManageNotice('');
+      setManageError('');
+    }
+  }, [activeGuild]);
+
+  // 6.2 Salvar Configurações da Guilda (Dono / Admin)
+  const handleSaveGuildSettings = async (e) => {
+    e.preventDefault();
+    if (!editTitle.trim() || !editDesc.trim()) {
+      setManageError('Nome e descrição são obrigatórios.');
+      return;
+    }
+
+    setManageLoading(true);
+    setManageNotice('');
+    setManageError('');
+
+    try {
+      const skillsArray = editSkills.split(',').map(s => s.trim()).filter(Boolean);
+      const payload = {
+        title: editTitle.trim(),
+        description: editDesc.trim(),
+        available_shifts: editShift,
+        needed_skills: skillsArray,
+        max_members: parseInt(editMaxMembers, 10) || 10
+      };
+
+      const res = await api.patch(`/squads/squads/${activeGuild.id}/`, payload);
+      setActiveGuild(res.data);
+      setGuildas(prev => prev.map(g => g.id === activeGuild.id ? res.data : g));
+      setManageNotice('Dados da guilda atualizados com sucesso!');
+    } catch (err) {
+      setManageError(err.response?.data?.error || 'Erro ao atualizar dados da guilda.');
+    } finally {
+      setManageLoading(false);
+    }
+  };
+
+  // 6.3 Excluir Guilda Definitivamente (Dono / Admin)
+  const handleDeleteGuild = async () => {
+    if (!window.confirm(`⚠️ Tem certeza de que deseja excluir a guilda "${activeGuild.title}"? Esta ação removerá a sede e o histórico de conversas permanentemente.`)) {
+      return;
+    }
+
+    setManageLoading(true);
+    try {
+      await api.delete(`/squads/squads/${activeGuild.id}/`);
+      setGuildas(prev => prev.filter(g => g.id !== activeGuild.id));
+      setActiveGuild(null);
+      setShowManageModal(false);
+      alert('Guilda excluída com sucesso.');
+    } catch (err) {
+      alert(err.response?.data?.error || 'Erro ao excluir guilda.');
+    } finally {
+      setManageLoading(false);
+    }
+  };
+
+  // 6.4 Convidar Membro para a Guilda
+  const handleInviteMember = async (e) => {
+    e.preventDefault();
+    if (!inviteIdentifier.trim()) return;
+
+    setInviteLoading(true);
+    setManageNotice('');
+    setManageError('');
+
+    try {
+      const res = await api.post(`/squads/squads/${activeGuild.id}/invite/`, {
+        identifier: inviteIdentifier.trim()
+      });
+      setManageNotice(res.data.message || 'Membro adicionado com sucesso!');
+      setInviteIdentifier('');
+      const updated = (await api.get(`/squads/squads/${activeGuild.id}/`)).data;
+      setActiveGuild(updated);
+      setGuildas(prev => prev.map(g => g.id === activeGuild.id ? updated : g));
+    } catch (err) {
+      setManageError(err.response?.data?.error || 'Erro ao convidar usuário.');
+    } finally {
+      setInviteLoading(false);
+    }
+  };
+
+  // 6.5 Confirmar Expulsão de Membro com Justificativa Auditada
+  const handleConfirmExpel = async (e) => {
+    e.preventDefault();
+    if (!memberToExpel) return;
+    if (!expulsionReason.trim() || expulsionReason.trim().length < 5) {
+      alert('Por favor, informe um motivo válido (mínimo de 5 caracteres) para fins de auditoria.');
+      return;
+    }
+
+    setExpellingLoading(true);
+    try {
+      const res = await api.post(`/squads/squads/${activeGuild.id}/expel/`, {
+        user_id: memberToExpel.id,
+        reason: expulsionReason.trim()
+      });
+      alert(res.data.message || 'Membro expulso da guilda.');
+      setMemberToExpel(null);
+      setExpulsionReason('');
+
+      const updated = (await api.get(`/squads/squads/${activeGuild.id}/`)).data;
+      setActiveGuild(updated);
+      setGuildas(prev => prev.map(g => g.id === activeGuild.id ? updated : g));
+
+      loadExpulsionLogs();
+    } catch (err) {
+      alert(err.response?.data?.error || 'Erro ao expulsar membro.');
+    } finally {
+      setExpellingLoading(false);
+    }
+  };
+
+  // 6.6 Carregar Histórico de Auditoria de Expulsões
+  const loadExpulsionLogs = async () => {
+    if (!activeGuild) return;
+    setLoadingLogs(true);
+    try {
+      const res = await api.get(`/squads/squads/${activeGuild.id}/expulsions/`);
+      setExpulsionLogs(res.data || []);
+    } catch (err) {
+      console.error('Erro ao carregar logs de expulsão:', err);
+    } finally {
+      setLoadingLogs(false);
+    }
+  };
+
+  // 6.7 Excluir Mensagem do Chat (Moderação)
+  const handleDeleteMessage = async (msgId) => {
+    if (!window.confirm('Deseja realmente excluir esta mensagem do chat da guilda?')) return;
+    try {
+      await api.delete(`/squads/squads/${activeGuild.id}/messages/`, {
+        data: { message_id: msgId }
+      });
+      setChatMessages(prev => prev.filter(m => m.id !== msgId));
+    } catch (err) {
+      alert(err.response?.data?.error || 'Erro ao excluir mensagem.');
     }
   };
 
@@ -560,15 +735,44 @@ function Guildas() {
           <div className="font-black text-white truncate text-sm">{activeGuild.title}</div>
         </div>
 
-        {!isLeader && (
-          <button 
-            onClick={() => handleLeaveGuild(activeGuild.id)}
-            className="text-red-400 hover:text-red-300 p-1.5 hover:bg-red-500/10 rounded-lg text-xs"
-            title="Sair desta guilda"
-          >
-            <LogOut size={16} />
-          </button>
-        )}
+        <div className="flex items-center gap-1.5">
+          {isLeader && (
+            <button 
+              onClick={() => {
+                setShowManageModal(true);
+                setManageTab('info');
+              }}
+              className="text-amber-400 hover:text-amber-300 p-1.5 hover:bg-amber-500/10 rounded-lg text-xs flex items-center gap-1"
+              title="Gerenciar Guilda (Líder / Admin)"
+            >
+              <Settings size={18} />
+            </button>
+          )}
+          <div className="flex items-center gap-1.5">
+            {isLeader && (
+              <button 
+                onClick={() => {
+                  setShowManageModal(true);
+                  setManageTab('info');
+                }}
+                className="text-amber-400 hover:text-amber-300 p-1.5 hover:bg-amber-500/10 rounded-lg text-xs flex items-center gap-1 font-semibold"
+                title="Gerenciar Guilda (Líder / Admin)"
+              >
+                <Settings size={16} />
+                <span className="hidden lg:inline text-[11px]">Gerenciar</span>
+              </button>
+            )}
+            {!isLeader && (
+              <button 
+                onClick={() => handleLeaveGuild(activeGuild.id)}
+                className="text-red-400 hover:text-red-300 p-1.5 hover:bg-red-500/10 rounded-lg text-xs"
+                title="Sair desta guilda"
+              >
+                <LogOut size={16} />
+              </button>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Mobile Horizontal Selector de Canais e Ferramentas (Fase 12) */}
@@ -774,28 +978,40 @@ function Guildas() {
                       </div>
                     )}
 
-                    {chatMessages.map(msg => (
-                      <div key={msg.id} className="flex gap-3 hover:bg-slate-800/40 p-2.5 rounded-xl transition-colors">
-                        <img 
-                          src={msg.author_avatar} 
-                          className="w-9 h-9 rounded-full object-cover shrink-0 mt-0.5 border border-slate-700" 
-                          alt="Avatar" 
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-baseline gap-2">
-                            <span className="font-bold text-sm text-slate-200">
-                              {msg.author_name}
-                            </span>
-                            <span className="text-[10px] text-slate-500 font-medium">
-                              {formatMsgTime(msg.created_at)}
-                            </span>
+                    {chatMessages.map(msg => {
+                      const canDelete = msg.can_delete || isLeader || (currentUser && currentUser.id === msg.author) || (currentUser && currentUser.role === 'ADMIN');
+                      return (
+                        <div key={msg.id} className="group relative flex gap-3 hover:bg-slate-800/40 p-2.5 rounded-xl transition-colors">
+                          <img 
+                            src={msg.author_avatar} 
+                            className="w-9 h-9 rounded-full object-cover shrink-0 mt-0.5 border border-slate-700" 
+                            alt="Avatar" 
+                          />
+                          <div className="flex-1 min-w-0 pr-8">
+                            <div className="flex items-baseline gap-2">
+                              <span className="font-bold text-sm text-slate-200">
+                                {msg.author_name}
+                              </span>
+                              <span className="text-[10px] text-slate-500 font-medium">
+                                {formatMsgTime(msg.created_at)}
+                              </span>
+                            </div>
+                            <p className="text-slate-300 text-sm leading-relaxed mt-0.5 whitespace-pre-wrap">
+                              {msg.content}
+                            </p>
                           </div>
-                          <p className="text-slate-300 text-sm leading-relaxed mt-0.5 whitespace-pre-wrap">
-                            {msg.content}
-                          </p>
+                          {canDelete && (
+                            <button
+                              onClick={() => handleDeleteMessage(msg.id)}
+                              className="opacity-0 group-hover:opacity-100 transition-opacity absolute right-2 top-2 p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg"
+                              title="Excluir mensagem (Moderação)"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          )}
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                     <div ref={chatEndRef} />
                   </>
                 )}
@@ -905,6 +1121,413 @@ function Guildas() {
 
         </div>
       </div>
+
+      {/* MODAL DE GESTÃO DA GUILDA (Líder / Admin Geral) */}
+      {showManageModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 md:p-6">
+          <div className="bg-[#0f172a] border border-slate-700/80 rounded-2xl max-w-2xl w-full shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-fade-in relative">
+            
+            {/* Cabeçalho do Modal */}
+            <div className="p-4 md:p-5 border-b border-slate-800 flex items-center justify-between bg-slate-900/60">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-amber-500/10 text-amber-400 rounded-xl border border-amber-500/20">
+                  <Shield size={20} />
+                </div>
+                <div>
+                  <h3 className="text-lg md:text-xl font-black text-white flex items-center gap-2">
+                    Painel de Gestão da Guilda
+                  </h3>
+                  <p className="text-slate-400 text-xs">Administre as configurações, membros e moderação de {activeGuild.title}</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => {
+                  setShowManageModal(false);
+                  setManageNotice('');
+                  setManageError('');
+                }}
+                className="text-slate-400 hover:text-white p-2 hover:bg-slate-800 rounded-xl transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Abas de Navegação */}
+            <div className="flex border-b border-slate-800 bg-slate-900/40 px-4 pt-2 gap-2">
+              <button
+                onClick={() => setManageTab('info')}
+                className={`flex items-center gap-2 px-3 py-2.5 text-xs font-bold rounded-t-xl transition-colors border-b-2 ${
+                  manageTab === 'info'
+                    ? 'border-amber-400 text-amber-400 bg-slate-800/60'
+                    : 'border-transparent text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <Settings size={15} /> Informações & Configurações
+              </button>
+              <button
+                onClick={() => setManageTab('members')}
+                className={`flex items-center gap-2 px-3 py-2.5 text-xs font-bold rounded-t-xl transition-colors border-b-2 ${
+                  manageTab === 'members'
+                    ? 'border-amber-400 text-amber-400 bg-slate-800/60'
+                    : 'border-transparent text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <Users size={15} /> Membros & Convites ({activeGuild.members_count || activeGuild.members?.length || 0})
+              </button>
+              <button
+                onClick={() => {
+                  setManageTab('audit');
+                  loadExpulsionLogs();
+                }}
+                className={`flex items-center gap-2 px-3 py-2.5 text-xs font-bold rounded-t-xl transition-colors border-b-2 ${
+                  manageTab === 'audit'
+                    ? 'border-amber-400 text-amber-400 bg-slate-800/60'
+                    : 'border-transparent text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <FileText size={15} /> Auditoria de Expulsões
+              </button>
+            </div>
+
+            {/* Feedback Messages */}
+            {manageNotice && (
+              <div className="mx-5 mt-4 p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2">
+                <CheckCircle2 size={16} />
+                <span>{manageNotice}</span>
+              </div>
+            )}
+            {manageError && (
+              <div className="mx-5 mt-4 p-3 rounded-xl bg-red-500/15 border border-red-500/30 text-red-300 text-xs flex items-center gap-2">
+                <AlertCircle size={16} />
+                <span>{manageError}</span>
+              </div>
+            )}
+
+            {/* Conteúdo das Abas */}
+            <div className="p-5 overflow-y-auto flex-1 space-y-5">
+              {/* ABA 1: CONFIGURAÇÕES DA GUILDA */}
+              {manageTab === 'info' && (
+                <div className="space-y-6">
+                  <form onSubmit={handleSaveGuildSettings} className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                        Nome da Guilda *
+                      </label>
+                      <input 
+                        type="text"
+                        required
+                        value={editTitle}
+                        onChange={(e) => setEditTitle(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white text-sm focus:border-amber-400 outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                        Objetivo & Descrição *
+                      </label>
+                      <textarea 
+                        required
+                        value={editDesc}
+                        onChange={(e) => setEditDesc(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white text-sm focus:border-amber-400 outline-none h-24 resize-none"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                          Foco / Tecnologias (separadas por vírgula)
+                        </label>
+                        <input 
+                          type="text"
+                          value={editSkills}
+                          onChange={(e) => setEditSkills(e.target.value)}
+                          placeholder="Ex: Python, React, TCC"
+                          className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white text-sm focus:border-amber-400 outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                          Turno de Estudo
+                        </label>
+                        <select
+                          value={editShift}
+                          onChange={(e) => setEditShift(e.target.value)}
+                          className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white text-sm focus:border-amber-400 outline-none font-medium"
+                        >
+                          <option value="Noite">Noite</option>
+                          <option value="Manhã">Manhã</option>
+                          <option value="Tarde">Tarde</option>
+                          <option value="Fins de Semana">Fins de Semana</option>
+                          <option value="Flexível">Horário Flexível</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                        Capacidade Máxima de Membros (5 a 50)
+                      </label>
+                      <input 
+                        type="number"
+                        min="2"
+                        max="50"
+                        value={editMaxMembers}
+                        onChange={(e) => setEditMaxMembers(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white text-sm focus:border-amber-400 outline-none"
+                      />
+                    </div>
+
+                    <div className="pt-2 flex justify-end">
+                      <button
+                        type="submit"
+                        disabled={manageLoading}
+                        className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-5 py-2.5 rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-amber-500/20 disabled:opacity-50"
+                      >
+                        {manageLoading ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
+                        Salvar Alterações
+                      </button>
+                    </div>
+                  </form>
+
+                  {/* Zona de Perigo */}
+                  <div className="p-4 rounded-xl border border-red-500/30 bg-red-500/5 space-y-3">
+                    <div className="flex items-center gap-2 text-red-400 font-bold text-sm">
+                      <AlertTriangle size={18} /> Zona de Perigo
+                    </div>
+                    <p className="text-slate-400 text-xs">
+                      Excluir permanentemente esta guilda removerá todos os canais, mensagens de chat e membros associados. Esta ação não poderá ser desfeita.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleDeleteGuild}
+                      disabled={manageLoading}
+                      className="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/40 font-bold px-4 py-2 rounded-xl text-xs transition-colors flex items-center gap-2"
+                    >
+                      <Trash2 size={14} /> Excluir Guilda Definitivamente
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* ABA 2: MEMBROS & CONVITES */}
+              {manageTab === 'members' && (
+                <div className="space-y-6">
+                  {/* Convidar universitário */}
+                  <div className="p-4 rounded-xl bg-slate-900 border border-slate-800">
+                    <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-2">
+                      <UserPlus size={16} className="text-amber-400" /> Convidar Estudante
+                    </h4>
+                    <form onSubmit={handleInviteMember} className="flex gap-2">
+                      <input 
+                        type="text"
+                        value={inviteIdentifier}
+                        onChange={(e) => setInviteIdentifier(e.target.value)}
+                        placeholder="Digite o @username ou e-mail institucional..."
+                        className="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-white placeholder-slate-500 focus:border-amber-400 outline-none"
+                      />
+                      <button
+                        type="submit"
+                        disabled={inviteLoading || !inviteIdentifier.trim()}
+                        className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs transition-colors flex items-center gap-1.5 shrink-0 disabled:opacity-50"
+                      >
+                        {inviteLoading ? <Loader2 size={14} className="animate-spin" /> : <UserPlus size={14} />}
+                        Convidar
+                      </button>
+                    </form>
+                  </div>
+
+                  {/* Lista de membros */}
+                  <div className="space-y-2">
+                    <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                      Membros Integrados ({activeGuild.members?.length || 0})
+                    </div>
+                    
+                    <div className="divide-y divide-slate-800/80 bg-slate-900/60 rounded-xl border border-slate-800 overflow-hidden">
+                      {(activeGuild.members || []).map(member => {
+                        const isThisMemberLeader = member.id === activeGuild.leader;
+                        return (
+                          <div key={member.id} className="p-3.5 flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-3 min-w-0">
+                              <img 
+                                src={member.avatar || `https://api.dicebear.com/7.x/adventurer/svg?seed=${member.username}`}
+                                alt={member.name || member.username}
+                                className="w-10 h-10 rounded-full object-cover border border-slate-700 shrink-0"
+                              />
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-bold text-sm text-white truncate">
+                                    {member.name || member.username}
+                                  </span>
+                                  {isThisMemberLeader && (
+                                    <span className="bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0">
+                                      <Crown size={11} /> Líder
+                                    </span>
+                                  )}
+                                  {member.role === 'ADMIN' && (
+                                    <span className="bg-red-500/20 text-red-300 border border-red-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0">
+                                      <Shield size={11} /> Admin
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="text-[11px] text-slate-400 flex items-center gap-2 mt-0.5">
+                                  <span>@{member.username}</span>
+                                  <span>•</span>
+                                  <span>Nível {member.level || 1}</span>
+                                  <span>•</span>
+                                  <span>{member.xp || 0} XP</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {!isThisMemberLeader && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setMemberToExpel(member);
+                                  setExpulsionReason('');
+                                }}
+                                className="text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-xl px-3 py-1.5 text-xs font-semibold flex items-center gap-1.5 transition-colors shrink-0"
+                                title="Expulsar membro da guilda (com registro auditado)"
+                              >
+                                <UserX size={14} />
+                                <span className="hidden sm:inline">Expulsar</span>
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ABA 3: AUDITORIA DE EXPULSÕES */}
+              {manageTab === 'audit' && (
+                <div className="space-y-4">
+                  <div className="p-3.5 bg-slate-900 border border-slate-800 rounded-xl flex items-start gap-3">
+                    <Shield className="text-amber-400 shrink-0 mt-0.5" size={18} />
+                    <p className="text-xs text-slate-300 leading-relaxed">
+                      <strong>Transparência & Moderação:</strong> Todas as expulsões realizadas nesta guilda são gravadas de forma permanente e auditadas pelos Administradores Gerais do UniStudy para garantir um ambiente saudável e combater abusos de poder.
+                    </p>
+                  </div>
+
+                  {loadingLogs ? (
+                    <div className="py-12 text-center text-slate-400 flex items-center justify-center gap-2 text-xs">
+                      <Loader2 size={18} className="animate-spin text-amber-400" />
+                      <span>Carregando logs de auditoria...</span>
+                    </div>
+                  ) : expulsionLogs.length === 0 ? (
+                    <div className="py-12 text-center text-slate-500 text-xs">
+                      Nenhum registro de expulsão encontrado nesta guilda. O ambiente segue em harmonia! 🎉
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {expulsionLogs.map(log => (
+                        <div key={log.id} className="p-4 bg-slate-900/80 border border-slate-800 rounded-xl space-y-2">
+                          <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                            <div className="text-slate-300">
+                              <span className="font-bold text-red-400">{log.expelled_user_name}</span> foi expulso(a) por <span className="font-bold text-amber-400">{log.expelled_by_name}</span>
+                            </div>
+                            <span className="text-[11px] text-slate-500">
+                              {new Date(log.created_at).toLocaleString('pt-BR')}
+                            </span>
+                          </div>
+                          <div className="p-2.5 bg-slate-950/70 border border-slate-800/80 rounded-lg text-xs text-slate-300 font-mono">
+                            <span className="text-slate-500 text-[11px] block font-sans font-bold uppercase mb-1">Motivo Registrado:</span>
+                            {log.reason}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Rodapé do Modal */}
+            <div className="p-4 border-t border-slate-800 bg-slate-900/60 flex justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowManageModal(false);
+                  setManageNotice('');
+                  setManageError('');
+                }}
+                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs transition-colors"
+              >
+                Fechar Painel
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE JUSTIFICATIVA OBRIGATÓRIA DE EXPULSÃO */}
+      {memberToExpel && (
+        <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-red-500/40 p-6 rounded-2xl max-w-md w-full shadow-2xl relative animate-fade-in space-y-4">
+            
+            <div className="flex items-center gap-3 text-red-400">
+              <div className="p-2.5 bg-red-500/15 rounded-xl border border-red-500/30">
+                <AlertTriangle size={24} />
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-white">Expulsar Membro</h3>
+                <p className="text-slate-400 text-xs">Ação permanente com auditoria</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-300">
+              Você está prestes a remover <strong className="text-white">{memberToExpel.name || memberToExpel.username}</strong> (@{memberToExpel.username}) da guilda <strong>{activeGuild.title}</strong>.
+            </p>
+
+            <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-[11px] text-amber-200 leading-relaxed">
+              ⚠️ <strong>Auditoria Obrigatória:</strong> A justificativa fornecida ficará permanentemente registrada no log da guilda e poderá ser revisada pelos administradores gerais da plataforma caso haja suspeita de abuso ou conduta injusta.
+            </div>
+
+            <form onSubmit={handleConfirmExpel} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                  Motivo da Expulsão * (Mínimo de 5 caracteres)
+                </label>
+                <textarea
+                  required
+                  rows={3}
+                  value={expulsionReason}
+                  onChange={(e) => setExpulsionReason(e.target.value)}
+                  placeholder="Ex: Mensagens ofensivas no chat e ausência recorrente nos estudos..."
+                  className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white text-xs focus:border-red-400 outline-none resize-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMemberToExpel(null);
+                    setExpulsionReason('');
+                  }}
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={expellingLoading || expulsionReason.trim().length < 5}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl text-xs transition-all shadow-lg shadow-red-600/20 disabled:opacity-50 flex items-center gap-1.5"
+                >
+                  {expellingLoading ? <Loader2 size={14} className="animate-spin" /> : <UserX size={14} />}
+                  Confirmar Expulsão
+                </button>
+              </div>
+            </form>
+
+          </div>
+        </div>
+      )}
 
     </div>
   );

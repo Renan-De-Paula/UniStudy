@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Squad, SquadMessage
+from .models import Squad, SquadMessage, SquadExpulsionLog
 
 User = get_user_model()
 
@@ -10,7 +10,7 @@ class SquadMemberSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'name', 'avatar', 'role', 'level', 'xp', 'is_mentor')
+        fields = ('id', 'username', 'email', 'name', 'avatar', 'role', 'level', 'xp', 'is_mentor')
 
     def get_name(self, obj):
         full = f"{obj.first_name} {obj.last_name}".strip()
@@ -24,12 +24,13 @@ class SquadMessageSerializer(serializers.ModelSerializer):
     author_avatar = serializers.SerializerMethodField()
     author_role = serializers.ReadOnlyField(source='author.role')
     author_level = serializers.SerializerMethodField()
+    can_delete = serializers.SerializerMethodField()
 
     class Meta:
         model = SquadMessage
         fields = (
             'id', 'squad', 'author', 'author_name', 'author_avatar', 
-            'author_role', 'author_level', 'channel', 'content', 'created_at'
+            'author_role', 'author_level', 'channel', 'content', 'can_delete', 'created_at'
         )
         read_only_fields = ('id', 'author', 'created_at')
 
@@ -42,6 +43,36 @@ class SquadMessageSerializer(serializers.ModelSerializer):
 
     def get_author_level(self, obj):
         return (obj.author.xp // 100) + 1
+
+    def get_can_delete(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            user = request.user
+            is_admin = getattr(user, 'role', '') == 'ADMIN' or user.is_staff or user.is_superuser
+            is_leader = obj.squad.leader == user
+            is_author = obj.author == user
+            return is_author or is_leader or is_admin
+        return False
+
+class SquadExpulsionLogSerializer(serializers.ModelSerializer):
+    expelled_user_name = serializers.SerializerMethodField()
+    expelled_by_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = SquadExpulsionLog
+        fields = (
+            'id', 'squad', 'expelled_user', 'expelled_user_name', 
+            'expelled_by', 'expelled_by_name', 'reason', 'created_at'
+        )
+        read_only_fields = ('id', 'created_at')
+
+    def get_expelled_user_name(self, obj):
+        full = f"{obj.expelled_user.first_name} {obj.expelled_user.last_name}".strip()
+        return full if full else obj.expelled_user.username
+
+    def get_expelled_by_name(self, obj):
+        full = f"{obj.expelled_by.first_name} {obj.expelled_by.last_name}".strip()
+        return full if full else obj.expelled_by.username
 
 class SquadSerializer(serializers.ModelSerializer):
     leader_name = serializers.SerializerMethodField()
@@ -79,5 +110,7 @@ class SquadSerializer(serializers.ModelSerializer):
     def get_is_leader(self, obj):
         request = self.context.get('request')
         if request and request.user.is_authenticated:
-            return obj.leader == request.user
+            user = request.user
+            is_admin = getattr(user, 'role', '') == 'ADMIN' or user.is_staff or user.is_superuser
+            return obj.leader == user or is_admin
         return False

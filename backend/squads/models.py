@@ -28,3 +28,16 @@ class SquadMessage(models.Model):
 
     def __str__(self):
         return f"[{self.squad.title}][{self.channel}] {self.author.username}: {self.content[:30]}"
+
+class SquadExpulsionLog(models.Model):
+    squad = models.ForeignKey(Squad, on_delete=models.CASCADE, related_name='expulsion_logs')
+    expelled_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='expulsions_received')
+    expelled_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='expulsions_given')
+    reason = models.TextField(help_text="Motivo detalhado da expulsão para fins de auditoria administrativa.")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Expulsão de {self.expelled_user.username} da guilda {self.squad.title} por {self.expelled_by.username}"
