@@ -9,24 +9,14 @@ from community.models import Discipline, Post, Answer
 from squads.models import Squad
 
 def seed():
-    # Criação de Usuários
-    if not User.objects.filter(username='prof_alan').exists():
-        prof = User.objects.create_user(
-            username='prof_alan', password='123', email='alan@uni.edu',
-            role=UserRole.PROFESSOR, is_mentor=True, xp=1000, is_email_verified=True
-        )
-        print("Professor Alan criado.")
-    else:
-        prof = User.objects.get(username='prof_alan')
+    # Usuários Oficiais do Guia
+    prof = User.objects.filter(username='prof_Renan').first()
+    if not prof:
+        prof = User.objects.filter(role=UserRole.ADMIN).first()
 
-    if not User.objects.filter(username='aluno_joao').exists():
-        aluno = User.objects.create_user(
-            username='aluno_joao', password='123', email='joao@uni.edu',
-            role=UserRole.STUDENT, course='Engenharia de Software', semester=3, xp=50, is_email_verified=True
-        )
-        print("Aluno João criado.")
-    else:
-        aluno = User.objects.get(username='aluno_joao')
+    aluno = User.objects.filter(username='matheus_aluno').first()
+    if not aluno:
+        aluno = User.objects.filter(role=UserRole.STUDENT).first()
 
     # Disciplinas
     d1, _ = Discipline.objects.get_or_create(name='Algoritmos e Estrutura de Dados', code='AED101', course='TI', semester=1)

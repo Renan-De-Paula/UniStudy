@@ -158,31 +158,9 @@ def setup():
         u.save()
         print(f" -> {role} {name}: usuário '{username}' / email '{email}' / senha '{pwd}'")
 
-    # Contas de demonstração adicionais
-    demo_users = [
-        ('prof_alan', 'Prof. Alan', 'alan@uni.edu', '123', UserRole.PROFESSOR, 1000, True),
-        ('aluno_joao', 'João Aluno', 'joao@uni.edu', '123', UserRole.STUDENT, 150, False),
-    ]
-    for username, name, email, pwd, role, xp, is_mentor in demo_users:
-        u = User.objects.filter(username=username).first() or User.objects.filter(email=email).first()
-        if not u:
-            u = User(username=username, email=email)
-        u.username = username
-        u.email = email
-        u.first_name = name
-        u.role = role
-        u.is_staff = False
-        u.is_superuser = False
-        u.is_active = True
-        u.is_email_verified = True
-        u.is_mentor = is_mentor
-        u.xp = xp
-        u.set_password(pwd)
-        u.save()
-
     print("\nTotal de usuários no banco:", User.objects.count())
     print("=" * 60)
-    print("CONFIGURACAO CONCLUIDA COM SUCESSO!")
+    print("CONFIGURACAO CONCLUIDA COM SUCESSO! (Apenas os 14 usuários oficiais do Guia)")
     print("=" * 60)
 
 if __name__ == '__main__':
