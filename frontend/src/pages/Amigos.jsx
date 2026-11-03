@@ -341,10 +341,10 @@ function Amigos({ initialChatFriend = null }) {
       </div>
 
       {/* ABAS DE NAVEGAÇÃO */}
-      <div className="flex border-b border-slate-800 bg-[#0f172a] rounded-xl p-1 gap-1">
+      <div className="flex border-b border-slate-800 bg-[#0f172a] rounded-xl p-1 gap-1 overflow-x-auto no-scrollbar">
         <button
           onClick={() => setActiveTab('friends')}
-          className={`flex-1 py-2.5 px-3 rounded-lg text-xs md:text-sm font-bold flex items-center justify-center gap-2 transition-all ${
+          className={`flex-1 min-w-[100px] py-2.5 px-3 rounded-lg text-xs md:text-sm font-bold flex items-center justify-center gap-1.5 sm:gap-2 transition-all shrink-0 sm:shrink ${
             activeTab === 'friends'
               ? 'bg-primary text-white shadow-md shadow-primary/20'
               : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
@@ -359,7 +359,7 @@ function Amigos({ initialChatFriend = null }) {
             setActiveTab('chat');
             loadConversationsSummary();
           }}
-          className={`flex-1 py-2.5 px-3 rounded-lg text-xs md:text-sm font-bold flex items-center justify-center gap-2 transition-all relative ${
+          className={`flex-1 min-w-[110px] py-2.5 px-3 rounded-lg text-xs md:text-sm font-bold flex items-center justify-center gap-1.5 sm:gap-2 transition-all relative shrink-0 sm:shrink ${
             activeTab === 'chat'
               ? 'bg-primary text-white shadow-md shadow-primary/20'
               : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
@@ -379,7 +379,7 @@ function Amigos({ initialChatFriend = null }) {
             setActiveTab('requests');
             loadRequests();
           }}
-          className={`flex-1 py-2.5 px-3 rounded-lg text-xs md:text-sm font-bold flex items-center justify-center gap-2 transition-all relative ${
+          className={`flex-1 min-w-[110px] py-2.5 px-3 rounded-lg text-xs md:text-sm font-bold flex items-center justify-center gap-1.5 sm:gap-2 transition-all relative shrink-0 sm:shrink ${
             activeTab === 'requests'
               ? 'bg-primary text-white shadow-md shadow-primary/20'
               : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
@@ -399,7 +399,7 @@ function Amigos({ initialChatFriend = null }) {
             setActiveTab('search');
             handleSearch(searchQuery);
           }}
-          className={`flex-1 py-2.5 px-3 rounded-lg text-xs md:text-sm font-bold flex items-center justify-center gap-2 transition-all ${
+          className={`flex-1 min-w-[120px] py-2.5 px-3 rounded-lg text-xs md:text-sm font-bold flex items-center justify-center gap-1.5 sm:gap-2 transition-all shrink-0 sm:shrink ${
             activeTab === 'search'
               ? 'bg-primary text-white shadow-md shadow-primary/20'
               : 'text-slate-400 hover:text-white hover:bg-slate-800/50'

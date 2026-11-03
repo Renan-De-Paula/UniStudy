@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
@@ -42,8 +42,8 @@ function OnboardingIA() {
   };
 
   return (
-    <div className="min-h-screen bg-darker flex items-center justify-center p-4">
-      <div className="bg-slate-800 p-8 rounded-xl border border-slate-700 shadow-2xl w-full max-w-2xl animate-fade-in relative">
+    <div className="min-h-screen bg-darker flex items-center justify-center p-3 sm:p-4 md:p-6">
+      <div className="bg-slate-800 p-5 sm:p-8 rounded-2xl sm:rounded-3xl border border-slate-700 shadow-2xl w-full max-w-2xl animate-fade-in relative max-h-[92vh] overflow-y-auto">
         
         <button 
           onClick={() => navigate('/')} 

@@ -594,280 +594,312 @@ function Quiz() {
 
       {/* -------------------- MODAL DE CRIAÇÃO DE QUIZ (EXCLUSIVO DOCENTE/ADMIN) -------------------- */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-          <div className="bg-slate-900 border border-slate-700 rounded-3xl max-w-2xl w-full p-5 sm:p-7 shadow-2xl relative my-8 animate-fade-in">
-            <button
-              onClick={() => setShowCreateModal(false)}
-              className="absolute right-4 top-4 p-2 text-slate-400 hover:text-white rounded-xl bg-slate-800/80 hover:bg-slate-700"
-            >
-              <X size={18} />
-            </button>
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-hidden">
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl sm:rounded-3xl max-w-3xl w-full max-h-[92vh] flex flex-col shadow-2xl relative animate-fade-in overflow-hidden">
+            
+            {/* Header Sticky */}
+            <div className="px-5 py-4 sm:px-6 sm:py-5 border-b border-slate-800 flex items-center justify-between shrink-0 bg-slate-900/95 backdrop-blur-md z-10">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 rounded-xl bg-amber-400/20 text-amber-300 flex items-center justify-center font-bold shrink-0">
+                  <GraduationCap size={22} />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-base sm:text-lg md:text-xl font-black text-white truncate">Criar Novo Quiz Oficial</h3>
+                  <p className="text-[11px] sm:text-xs text-slate-400 truncate">Elabore perguntas para desafiar os alunos e distribuir XP acadêmico.</p>
+                </div>
+              </div>
 
-            <div className="flex items-center gap-2.5 mb-5">
-              <div className="w-10 h-10 rounded-xl bg-amber-400/20 text-amber-300 flex items-center justify-center font-bold">
-                <GraduationCap size={22} />
-              </div>
-              <div>
-                <h3 className="text-lg sm:text-xl font-black text-white">Criar Novo Quiz Oficial</h3>
-                <p className="text-xs text-slate-400">Elabore perguntas para desafiar os alunos e distribuir XP acadêmico.</p>
-              </div>
+              <button
+                type="button"
+                onClick={() => setShowCreateModal(false)}
+                className="p-2 text-slate-400 hover:text-white rounded-xl bg-slate-800/80 hover:bg-slate-700 transition-colors shrink-0 ml-2 cursor-pointer"
+                title="Fechar modal"
+              >
+                <X size={18} />
+              </button>
             </div>
 
-            <form onSubmit={handleSaveQuiz} className="space-y-4">
-              {/* Título */}
-              <div>
-                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Título do Quiz *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Ex: Introdução a Algoritmos e Estruturas"
-                  value={newQuiz.title}
-                  onChange={(e) => setNewQuiz({ ...newQuiz, title: e.target.value })}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs sm:text-sm text-white focus:border-primary outline-none"
-                />
-              </div>
-
-              {/* Descrição */}
-              <div>
-                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Breve Descrição</label>
-                <input
-                  type="text"
-                  placeholder="Ex: Questionário sobre vetores, matrizes e laços de repetição."
-                  value={newQuiz.description}
-                  onChange={(e) => setNewQuiz({ ...newQuiz, description: e.target.value })}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs sm:text-sm text-white focus:border-primary outline-none"
-                />
-              </div>
-
-              {/* Categoria, Dificuldade e Recompensa */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {/* Form com Scroll no Corpo */}
+            <form onSubmit={handleSaveQuiz} className="flex-1 flex flex-col min-h-0">
+              <div className="p-4 sm:p-6 md:p-7 overflow-y-auto flex-1 space-y-5">
+                
+                {/* Título */}
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Categoria</label>
-                  <select
-                    value={newQuiz.category}
-                    onChange={(e) => setNewQuiz({ ...newQuiz, category: e.target.value })}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:border-primary outline-none font-medium"
-                  >
-                    <option value="Programação">Programação</option>
-                    <option value="Lógica">Lógica</option>
-                    <option value="Computação">Computação</option>
-                    <option value="Matemática">Matemática</option>
-                    <option value="Engenharia">Engenharia</option>
-                    <option value="Geral">Geral</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Dificuldade</label>
-                  <select
-                    value={newQuiz.difficulty}
-                    onChange={(e) => setNewQuiz({ ...newQuiz, difficulty: e.target.value })}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:border-primary outline-none font-medium"
-                  >
-                    <option value="Iniciante">Iniciante</option>
-                    <option value="Intermediário">Intermediário</option>
-                    <option value="Avançado">Avançado</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Recompensa (XP)</label>
+                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Título do Quiz *</label>
                   <input
-                    type="number"
-                    min="50"
-                    max="1000"
-                    step="50"
-                    value={newQuiz.xp_reward}
-                    onChange={(e) => setNewQuiz({ ...newQuiz, xp_reward: Number(e.target.value) })}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs sm:text-sm text-white focus:border-primary outline-none"
+                    type="text"
+                    required
+                    placeholder="Ex: Introdução a Algoritmos e Estruturas"
+                    value={newQuiz.title}
+                    onChange={(e) => setNewQuiz({ ...newQuiz, title: e.target.value })}
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs sm:text-sm text-white focus:border-primary outline-none transition-colors"
                   />
                 </div>
-              </div>
 
-              {/* CONFIGURAÇÃO DA CONQUISTA & SELOS (BRONZE 50%, PRATA 70%, OURO 100%) */}
-              <div className="p-4 rounded-2xl bg-gradient-to-br from-primary/10 via-purple-950/20 to-slate-900 border border-primary/30 space-y-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-300 flex items-center justify-center font-bold text-base shadow-sm">
-                    🏅
-                  </div>
-                  <div>
-                    <h4 className="text-xs sm:text-sm font-black text-white">Configurar Selo da Conquista do Quiz</h4>
-                    <p className="text-[11px] text-slate-400">Os 3 níveis de medalhas serão gerados automaticamente conforme a pontuação.</p>
-                  </div>
+                {/* Descrição */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Breve Descrição</label>
+                  <input
+                    type="text"
+                    placeholder="Ex: Questionário sobre vetores, matrizes e laços de repetição."
+                    value={newQuiz.description}
+                    onChange={(e) => setNewQuiz({ ...newQuiz, description: e.target.value })}
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs sm:text-sm text-white focus:border-primary outline-none transition-colors"
+                  />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
-                  <div className="sm:col-span-1">
-                    <label className="block text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-1">Emoji do Selo</label>
-                    <div className="flex items-center gap-1.5">
-                      <input
-                        type="text"
-                        maxLength="4"
-                        value={newQuiz.badge_emoji}
-                        onChange={(e) => setNewQuiz({ ...newQuiz, badge_emoji: e.target.value })}
-                        className="w-12 text-center bg-slate-800 border border-slate-700 rounded-xl p-2 text-base text-white focus:border-primary outline-none shrink-0"
-                      />
-                      <div className="flex flex-wrap gap-1">
-                        {['🏆', '🧠', '⚡', '🐍', '🎯', '💻', '🚀', '🦉'].map(em => (
-                          <button
-                            type="button"
-                            key={em}
-                            onClick={() => setNewQuiz({ ...newQuiz, badge_emoji: em })}
-                            className="p-1 rounded-md bg-slate-800 hover:bg-primary/40 border border-slate-700 text-xs transition-colors"
-                          >
-                            {em}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+                {/* Categoria, Dificuldade e Recompensa (Grid Responsivo) */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Categoria</label>
+                    <select
+                      value={newQuiz.category}
+                      onChange={(e) => setNewQuiz({ ...newQuiz, category: e.target.value })}
+                      className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:border-primary outline-none font-medium cursor-pointer"
+                    >
+                      <option value="Programação">Programação</option>
+                      <option value="Lógica">Lógica</option>
+                      <option value="Computação">Computação</option>
+                      <option value="Matemática">Matemática</option>
+                      <option value="Engenharia">Engenharia</option>
+                      <option value="Geral">Geral</option>
+                    </select>
                   </div>
 
-                  <div className="sm:col-span-3">
-                    <label className="block text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-1">Título da Conquista / Selo</label>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Dificuldade</label>
+                    <select
+                      value={newQuiz.difficulty}
+                      onChange={(e) => setNewQuiz({ ...newQuiz, difficulty: e.target.value })}
+                      className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:border-primary outline-none font-medium cursor-pointer"
+                    >
+                      <option value="Iniciante">Iniciante</option>
+                      <option value="Intermediário">Intermediário</option>
+                      <option value="Avançado">Avançado</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Recompensa (XP)</label>
                     <input
-                      type="text"
-                      placeholder="Ex: Mestre em Algoritmos e Lógica"
-                      value={newQuiz.badge_title}
-                      onChange={(e) => setNewQuiz({ ...newQuiz, badge_title: e.target.value })}
-                      className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:border-primary outline-none"
+                      type="number"
+                      min="50"
+                      max="1000"
+                      step="50"
+                      value={newQuiz.xp_reward}
+                      onChange={(e) => setNewQuiz({ ...newQuiz, xp_reward: Number(e.target.value) })}
+                      className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs sm:text-sm text-white focus:border-primary outline-none"
                     />
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-1">Descrição da Conquista</label>
-                  <input
-                    type="text"
-                    placeholder="Ex: Demonstrou domínio em sintaxe, estruturas condicionais e laços."
-                    value={newQuiz.badge_description}
-                    onChange={(e) => setNewQuiz({ ...newQuiz, badge_description: e.target.value })}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:border-primary outline-none"
-                  />
-                </div>
-
-                {/* Prévia automática dos 3 níveis */}
-                <div className="pt-2 border-t border-slate-800/80">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5 flex items-center gap-1">
-                    <Sparkles size={11} className="text-amber-400" /> Prévia dos Selos gerados automaticamente pelo sistema:
-                  </span>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
-                    <div className="p-2.5 rounded-xl bg-amber-950/25 border border-amber-700/40 text-amber-200">
-                      <span className="font-bold flex items-center gap-1 text-[11px] text-amber-300">
-                        🥉 Bronze (50%+)
-                      </span>
-                      <p className="text-[10px] text-amber-200/90 truncate mt-0.5">
-                        🥉 {newQuiz.badge_emoji || '🏆'} [Bronze] {newQuiz.badge_title || newQuiz.title || 'Título da Conquista'}
-                      </p>
+                {/* CONFIGURAÇÃO DA CONQUISTA & SELOS (BRONZE 50%, PRATA 70%, OURO 100%) */}
+                <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-primary/10 via-purple-950/20 to-slate-900 border border-primary/30 space-y-4">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-300 flex items-center justify-center font-bold text-base shrink-0 shadow-sm">
+                      🏅
                     </div>
-                    <div className="p-2.5 rounded-xl bg-slate-800/60 border border-slate-400/40 text-slate-200">
-                      <span className="font-bold flex items-center gap-1 text-[11px] text-slate-300">
-                        🥈 Prata (70%+)
-                      </span>
-                      <p className="text-[10px] text-slate-300/90 truncate mt-0.5">
-                        🥈 {newQuiz.badge_emoji || '🏆'} [Prata] {newQuiz.badge_title || newQuiz.title || 'Título da Conquista'}
-                      </p>
-                    </div>
-                    <div className="p-2.5 rounded-xl bg-yellow-950/30 border border-yellow-500/50 text-yellow-200">
-                      <span className="font-bold flex items-center gap-1 text-[11px] text-yellow-400">
-                        🥇 Ouro (100%)
-                      </span>
-                      <p className="text-[10px] text-yellow-300/90 truncate mt-0.5">
-                        🥇 {newQuiz.badge_emoji || '🏆'} [Ouro] {newQuiz.badge_title || newQuiz.title || 'Título da Conquista'}
-                      </p>
+                    <div>
+                      <h4 className="text-xs sm:text-sm font-black text-white">Configurar Selo da Conquista do Quiz</h4>
+                      <p className="text-[11px] text-slate-400">Os 3 níveis de medalhas serão gerados automaticamente conforme a pontuação.</p>
                     </div>
                   </div>
-                  <p className="text-[10px] text-slate-400 mt-1.5 italic">
-                    * Abaixo de 50%, o participante não atinge a pontuação mínima para selo.
-                  </p>
-                </div>
-              </div>
 
-              {/* Construtor de Perguntas */}
-              <div className="pt-3 border-t border-slate-800">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-sm font-bold text-white flex items-center gap-1.5">
-                    <HelpCircle size={16} className="text-purple-400" /> Perguntas ({newQuiz.questions.length})
-                  </h4>
-                  <button
-                    type="button"
-                    onClick={handleAddQuestion}
-                    className="text-xs font-bold text-primary hover:text-white flex items-center gap-1 bg-primary/20 px-3 py-1.5 rounded-lg border border-primary/30"
-                  >
-                    <PlusCircle size={14} /> Adicionar Pergunta
-                  </button>
-                </div>
-
-                <div className="space-y-4 max-h-72 overflow-y-auto pr-1 no-scrollbar">
-                  {newQuiz.questions.map((q, qIdx) => (
-                    <div key={qIdx} className="bg-slate-800/60 border border-slate-700/80 rounded-2xl p-4 relative">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-bold text-slate-300">Questão #{qIdx + 1}</span>
-                        {newQuiz.questions.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveQuestion(qIdx)}
-                            className="text-red-400 hover:text-red-300 p-1 text-xs"
-                            title="Remover esta questão"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        )}
-                      </div>
-
-                      <input
-                        type="text"
-                        placeholder="Enunciado da pergunta..."
-                        value={q.text}
-                        onChange={(e) => handleQuestionTextChange(qIdx, e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white mb-3 focus:border-primary outline-none"
-                      />
-
-                      <div className="space-y-1.5">
-                        <span className="text-[11px] text-slate-400 block font-semibold">Alternativas (Marque a correta):</span>
-                        {q.options.map((opt, optIdx) => (
-                          <div key={optIdx} className="flex items-center gap-2">
-                            <input
-                              type="radio"
-                              name={`correct-${qIdx}`}
-                              checked={q.correct === optIdx}
-                              onChange={() => handleCorrectChoice(qIdx, optIdx)}
-                              className="accent-primary cursor-pointer w-4 h-4"
-                              title="Marcar como alternativa correta"
-                            />
-                            <span className="text-xs font-bold text-slate-400 w-4">{String.fromCharCode(65 + optIdx)}</span>
-                            <input
-                              type="text"
-                              placeholder={`Opção ${String.fromCharCode(65 + optIdx)}`}
-                              value={opt}
-                              onChange={(e) => handleOptionChange(qIdx, optIdx, e.target.value)}
-                              className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:border-primary outline-none"
-                            />
-                          </div>
-                        ))}
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-start">
+                    <div className="md:col-span-5 space-y-1.5">
+                      <label className="block text-[11px] font-bold text-slate-300 uppercase tracking-wider">Emoji do Selo</label>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <input
+                          type="text"
+                          maxLength="4"
+                          value={newQuiz.badge_emoji}
+                          onChange={(e) => setNewQuiz({ ...newQuiz, badge_emoji: e.target.value })}
+                          className="w-12 h-10 text-center bg-slate-800 border border-slate-700 rounded-xl text-lg text-white focus:border-primary outline-none shrink-0"
+                        />
+                        <div className="flex items-center gap-1 flex-wrap">
+                          {['🏆', '🧠', '⚡', '🐍', '🎯', '💻', '🚀', '🦉'].map(em => (
+                            <button
+                              type="button"
+                              key={em}
+                              onClick={() => setNewQuiz({ ...newQuiz, badge_emoji: em })}
+                              className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm transition-all border cursor-pointer ${
+                                newQuiz.badge_emoji === em 
+                                  ? 'bg-primary border-primary text-white scale-110 shadow-md shadow-primary/30' 
+                                  : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-200'
+                              }`}
+                            >
+                              {em}
+                            </button>
+                          ))}
+                        </div>
                       </div>
                     </div>
-                  ))}
+
+                    <div className="md:col-span-7">
+                      <label className="block text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-1.5">Título da Conquista / Selo *</label>
+                      <input
+                        type="text"
+                        placeholder="Ex: Mestre em Algoritmos e Lógica"
+                        value={newQuiz.badge_title}
+                        onChange={(e) => setNewQuiz({ ...newQuiz, badge_title: e.target.value })}
+                        className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs sm:text-sm text-white focus:border-primary outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-1.5">Descrição da Conquista</label>
+                    <input
+                      type="text"
+                      placeholder="Ex: Demonstrou domínio em sintaxe, estruturas condicionais e laços."
+                      value={newQuiz.badge_description}
+                      onChange={(e) => setNewQuiz({ ...newQuiz, badge_description: e.target.value })}
+                      className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs sm:text-sm text-white focus:border-primary outline-none"
+                    />
+                  </div>
+
+                  {/* Prévia automática dos 3 níveis de medalhas */}
+                  <div className="pt-3 border-t border-slate-800/80">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2 flex items-center gap-1.5">
+                      <Sparkles size={12} className="text-amber-400" /> Prévia dos Selos gerados automaticamente pelo sistema:
+                    </span>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                      <div className="p-3 rounded-xl bg-amber-950/30 border border-amber-700/50 text-amber-200 flex flex-col justify-between">
+                        <span className="font-bold flex items-center gap-1.5 text-xs text-amber-300 mb-1">
+                          🥉 Bronze (50%+)
+                        </span>
+                        <p className="text-[11px] text-amber-200/90 leading-tight break-words">
+                          🥉 {newQuiz.badge_emoji || '🏆'} [Bronze] {newQuiz.badge_title || newQuiz.title || 'Título da Conquista'}
+                        </p>
+                      </div>
+                      <div className="p-3 rounded-xl bg-slate-800/80 border border-slate-400/40 text-slate-200 flex flex-col justify-between">
+                        <span className="font-bold flex items-center gap-1.5 text-xs text-slate-300 mb-1">
+                          🥈 Prata (70%+)
+                        </span>
+                        <p className="text-[11px] text-slate-300/90 leading-tight break-words">
+                          🥈 {newQuiz.badge_emoji || '🏆'} [Prata] {newQuiz.badge_title || newQuiz.title || 'Título da Conquista'}
+                        </p>
+                      </div>
+                      <div className="p-3 rounded-xl bg-yellow-950/30 border border-yellow-500/50 text-yellow-200 flex flex-col justify-between">
+                        <span className="font-bold flex items-center gap-1.5 text-xs text-yellow-400 mb-1">
+                          🥇 Ouro (100%)
+                        </span>
+                        <p className="text-[11px] text-yellow-300/90 leading-tight break-words">
+                          🥇 {newQuiz.badge_emoji || '🏆'} [Ouro] {newQuiz.badge_title || newQuiz.title || 'Título da Conquista'}
+                        </p>
+                      </div>
+                    </div>
+                    <p className="text-[10px] text-slate-400 mt-2 italic">
+                      * Abaixo de 50%, o participante não atinge a pontuação mínima para selo.
+                    </p>
+                  </div>
                 </div>
+
+                {/* Construtor de Perguntas */}
+                <div className="pt-3 border-t border-slate-800">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-sm font-bold text-white flex items-center gap-1.5">
+                      <HelpCircle size={16} className="text-purple-400" /> Perguntas ({newQuiz.questions.length})
+                    </h4>
+                    <button
+                      type="button"
+                      onClick={handleAddQuestion}
+                      className="text-xs font-bold text-primary hover:text-white flex items-center gap-1.5 bg-primary/20 hover:bg-primary/30 px-3 py-1.5 rounded-xl border border-primary/40 transition-colors cursor-pointer"
+                    >
+                      <PlusCircle size={14} /> Adicionar Pergunta
+                    </button>
+                  </div>
+
+                  <div className="space-y-4">
+                    {newQuiz.questions.map((q, qIdx) => (
+                      <div key={qIdx} className="bg-slate-800/70 border border-slate-700/80 rounded-2xl p-4 relative space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-slate-300 flex items-center gap-2">
+                            <span className="w-5 h-5 rounded-full bg-primary/30 text-primary-light flex items-center justify-center text-[10px] font-black">
+                              {qIdx + 1}
+                            </span>
+                            Questão #{qIdx + 1}
+                          </span>
+                          {newQuiz.questions.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveQuestion(qIdx)}
+                              className="text-red-400 hover:text-red-300 p-1.5 hover:bg-red-500/10 rounded-lg text-xs transition-colors flex items-center gap-1 cursor-pointer"
+                              title="Remover esta questão"
+                            >
+                              <Trash2 size={14} />
+                              <span className="text-[11px] hidden sm:inline">Excluir</span>
+                            </button>
+                          )}
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-400 uppercase mb-1">Enunciado da Pergunta *</label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="Enunciado da pergunta..."
+                            value={q.text}
+                            onChange={(e) => handleQuestionTextChange(qIdx, e.target.value)}
+                            className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-xs sm:text-sm text-white focus:border-primary outline-none"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <span className="text-[11px] text-slate-400 block font-semibold">Alternativas (selecione a correta):</span>
+                          {q.options.map((opt, optIdx) => (
+                            <div key={optIdx} className="flex items-center gap-2 bg-slate-900/60 p-1.5 pr-2 rounded-xl border border-slate-800 focus-within:border-primary/50 transition-colors">
+                              <label className="flex items-center gap-1.5 cursor-pointer pl-1 shrink-0" title="Marcar como alternativa correta">
+                                <input
+                                  type="radio"
+                                  name={`correct-${qIdx}`}
+                                  checked={q.correct === optIdx}
+                                  onChange={() => handleCorrectChoice(qIdx, optIdx)}
+                                  className="accent-primary cursor-pointer w-4 h-4"
+                                />
+                                <span className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-black transition-colors ${
+                                  q.correct === optIdx ? 'bg-primary text-white' : 'bg-slate-800 text-slate-400'
+                                }`}>
+                                  {String.fromCharCode(65 + optIdx)}
+                                </span>
+                              </label>
+                              <input
+                                type="text"
+                                required
+                                placeholder={`Alternativa ${String.fromCharCode(65 + optIdx)}`}
+                                value={opt}
+                                onChange={(e) => handleOptionChange(qIdx, optIdx, e.target.value)}
+                                className="flex-1 min-w-0 bg-transparent border-none text-xs sm:text-sm text-white focus:outline-none px-1"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
               </div>
 
-              {/* Botão de Envio */}
-              <div className="pt-3 border-t border-slate-800 flex justify-end gap-2.5">
+              {/* Footer Sticky com botões de Ação */}
+              <div className="px-5 py-3.5 sm:px-6 sm:py-4 border-t border-slate-800 flex items-center justify-end gap-3 shrink-0 bg-slate-900/95 backdrop-blur-md">
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-400 hover:text-white"
+                  className="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-slate-400 hover:text-white bg-slate-800/60 hover:bg-slate-800 transition-colors cursor-pointer"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={isPublishing}
-                  className="bg-primary hover:bg-primary/90 text-white font-bold px-6 py-2.5 rounded-xl text-xs sm:text-sm flex items-center gap-2 shadow-lg shadow-primary/25 disabled:opacity-50"
+                  className="bg-primary hover:bg-primary/90 text-white font-bold px-6 py-2.5 rounded-xl text-xs sm:text-sm flex items-center gap-2 shadow-lg shadow-primary/25 disabled:opacity-50 cursor-pointer active:scale-95 transition-all"
                 >
                   {isPublishing ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
                   {isPublishing ? 'Publicando...' : 'Publicar Quiz Oficial'}
                 </button>
               </div>
+
             </form>
           </div>
         </div>

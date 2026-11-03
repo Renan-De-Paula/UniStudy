@@ -156,7 +156,7 @@ function Login() {
       <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-primary/20 blur-3xl rounded-full mix-blend-screen pointer-events-none"></div>
       <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-accent/20 blur-3xl rounded-full mix-blend-screen pointer-events-none"></div>
 
-      <div className="bg-darker/80 backdrop-blur-xl border border-slate-700/50 p-8 md:p-10 rounded-2xl shadow-2xl w-full max-w-md relative z-10 animate-fade-in">
+      <div className="bg-darker/80 backdrop-blur-xl border border-slate-700/50 p-6 sm:p-8 md:p-10 rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-md relative z-10 animate-fade-in max-h-[95vh] overflow-y-auto">
         
         <div className="text-center mb-6">
           <img src={logo} alt="UniStudy Hub" className="h-[90px] mx-auto mb-3 object-contain drop-shadow-[0_0_15px_rgba(109,40,217,0.5)]" />

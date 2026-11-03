@@ -512,11 +512,11 @@ function Guildas() {
 
         {/* Modal de Criação */}
         {showCreateModal && (
-          <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-slate-800 border border-slate-700 p-6 md:p-8 rounded-2xl max-w-lg w-full shadow-2xl relative animate-fade-in">
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 overflow-hidden">
+            <div className="bg-slate-800 border border-slate-700 p-5 sm:p-7 md:p-8 rounded-2xl sm:rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl relative animate-fade-in">
               <button 
                 onClick={() => setShowCreateModal(false)}
-                className="absolute top-4 right-4 text-slate-400 hover:text-white p-1"
+                className="absolute top-4 right-4 text-slate-400 hover:text-white p-2 rounded-xl bg-slate-700/50 hover:bg-slate-700 transition-colors"
               >
                 <X size={20} />
               </button>
@@ -1508,8 +1508,8 @@ function Guildas() {
 
       {/* MODAL DE JUSTIFICATIVA OBRIGATÓRIA DE EXPULSÃO */}
       {memberToExpel && (
-        <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-red-500/40 p-6 rounded-2xl max-w-md w-full shadow-2xl relative animate-fade-in space-y-4">
+        <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 overflow-hidden">
+          <div className="bg-slate-900 border border-red-500/40 p-5 sm:p-6 rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl relative animate-fade-in space-y-4">
             
             <div className="flex items-center gap-3 text-red-400">
               <div className="p-2.5 bg-red-500/15 rounded-xl border border-red-500/30">

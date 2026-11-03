@@ -693,8 +693,13 @@ function Home() {
                   : 'text-slate-400 hover:text-white font-medium'
               }`}
             >
-              <div className={`p-1 rounded-lg transition-colors ${isActive ? 'bg-primary/20 text-primary shadow-sm' : ''}`}>
+              <div className={`relative p-1 rounded-lg transition-colors ${isActive ? 'bg-primary/20 text-primary shadow-sm' : ''}`}>
                 {navItem.icon}
+                {navItem.badge && (
+                  <span className="absolute -top-1 -right-1 bg-amber-500 text-slate-950 text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center animate-pulse shadow-md">
+                    {navItem.badge}
+                  </span>
+                )}
               </div>
               <span className={`text-[10px] mt-0.5 tracking-tight ${isActive ? 'font-bold text-white' : ''}`}>
                 {navItem.label}
