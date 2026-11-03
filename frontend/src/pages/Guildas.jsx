@@ -42,9 +42,12 @@ function Guildas() {
   const [manageNotice, setManageNotice] = useState('');
   const [manageError, setManageError] = useState('');
 
-  // Convite de membro
+  // Convite de membro e hierarquia de cargos
   const [inviteIdentifier, setInviteIdentifier] = useState('');
+  const [inviteRole, setInviteRole] = useState('MEMBER');
   const [inviteLoading, setInviteLoading] = useState(false);
+  const [updatingRoleId, setUpdatingRoleId] = useState(null);
+  const [showBenefitsGuide, setShowBenefitsGuide] = useState(false);
 
   // Expulsão com auditoria obrigatória
   const [memberToExpel, setMemberToExpel] = useState(null);
@@ -355,7 +358,7 @@ function Guildas() {
     }
   };
 
-  // 6.4 Convidar Membro para a Guilda
+  // 6.4 Convidar Membro para a Guilda com Atribuição de Cargo
   const handleInviteMember = async (e) => {
     e.preventDefault();
     if (!inviteIdentifier.trim()) return;
@@ -366,10 +369,12 @@ function Guildas() {
 
     try {
       const res = await api.post(`/squads/squads/${activeGuild.id}/invite/`, {
-        identifier: inviteIdentifier.trim()
+        identifier: inviteIdentifier.trim(),
+        role: inviteRole
       });
       setManageNotice(res.data.message || 'Membro adicionado com sucesso!');
       setInviteIdentifier('');
+      setInviteRole('MEMBER');
       const updated = (await api.get(`/squads/squads/${activeGuild.id}/`)).data;
       setActiveGuild(updated);
       setGuildas(prev => prev.map(g => g.id === activeGuild.id ? updated : g));
@@ -377,6 +382,27 @@ function Guildas() {
       setManageError(err.response?.data?.error || 'Erro ao convidar usuário.');
     } finally {
       setInviteLoading(false);
+    }
+  };
+
+  // 6.4.1 Alterar Cargo Hierárquico de um Membro (Exclusivo do Criador/Líder Supremo)
+  const handleUpdateMemberRole = async (userId, newRole) => {
+    try {
+      setUpdatingRoleId(userId);
+      setManageNotice('');
+      setManageError('');
+      const res = await api.post(`/squads/squads/${activeGuild.id}/update_member_role/`, {
+        user_id: userId,
+        role: newRole
+      });
+      setManageNotice(res.data.message || 'Cargo atualizado com sucesso!');
+      const updated = (await api.get(`/squads/squads/${activeGuild.id}/`)).data;
+      setActiveGuild(updated);
+      setGuildas(prev => prev.map(g => g.id === activeGuild.id ? updated : g));
+    } catch (err) {
+      setManageError(err.response?.data?.error || 'Erro ao alterar cargo do membro.');
+    } finally {
+      setUpdatingRoleId(null);
     }
   };
 
@@ -1004,9 +1030,6 @@ function Guildas() {
                   </div>
                   <h4 className="text-lg font-bold text-white">Canal #{activeChannel}</h4>
                   <p className="text-slate-400 text-xs">Mensagens salvas e sincronizadas no banco de dados da guilda.</p>
-                  <p className="text-[11px] text-amber-300/90 mt-1.5 inline-flex items-center gap-1 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
-                    🧹 <strong>Faxina semanal:</strong> Todo domingo às 23:59 o chat é reiniciado para manter o banco leve e rápido.
-                  </p>
                 </div>
 
                 {loadingChat ? (
@@ -1032,10 +1055,25 @@ function Guildas() {
                             alt="Avatar" 
                           />
                           <div className="flex-1 min-w-0 pr-8">
-                            <div className="flex items-baseline gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <span className="font-bold text-sm text-slate-200">
                                 {msg.author_name}
                               </span>
+                              {msg.author_guild_badge && (
+                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${
+                                  msg.author_guild_role === 'LEADER'
+                                    ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                                    : msg.author_guild_role === 'SUB_LEADER'
+                                      ? 'bg-purple-500/20 text-purple-300 border-purple-500/40'
+                                      : msg.author_guild_role === 'MENTOR'
+                                        ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40'
+                                        : msg.author_guild_role === 'VETERAN'
+                                          ? 'bg-yellow-500/20 text-yellow-300 border-yellow-500/40'
+                                          : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                                }`}>
+                                  {msg.author_guild_badge}
+                                </span>
+                              )}
                               <span className="text-[10px] text-slate-500 font-medium">
                                 {formatMsgTime(msg.created_at)}
                               </span>
@@ -1355,26 +1393,47 @@ function Guildas() {
                 </div>
               )}
 
-              {/* ABA 2: MEMBROS & CONVITES */}
+              {/* ABA 2: MEMBROS & CONVITES COM ADMINISTRAÇÃO HIERÁRQUICA */}
               {manageTab === 'members' && (
-                <div className="space-y-6">
-                  {/* Convidar universitário */}
-                  <div className="p-4 rounded-xl bg-slate-900 border border-slate-800">
-                    <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-2">
-                      <UserPlus size={16} className="text-amber-400" /> Convidar Estudante
-                    </h4>
-                    <form onSubmit={handleInviteMember} className="flex gap-2">
+                <div className="space-y-5">
+                  {/* Convidar universitário com atribuição de cargo */}
+                  <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+                        <UserPlus size={16} className="text-amber-400" /> Convidar Estudante com Cargo
+                      </h4>
+                      <button
+                        type="button"
+                        onClick={() => setShowBenefitsGuide(!showBenefitsGuide)}
+                        className="text-[11px] font-bold text-amber-400 hover:text-amber-300 underline cursor-pointer"
+                      >
+                        {showBenefitsGuide ? 'Ocultar Benefícios' : 'Ver Cargos & Benefícios'}
+                      </button>
+                    </div>
+
+                    <form onSubmit={handleInviteMember} className="flex flex-col sm:flex-row gap-2">
                       <input 
                         type="text"
                         value={inviteIdentifier}
                         onChange={(e) => setInviteIdentifier(e.target.value)}
                         placeholder="Digite o @username ou e-mail institucional..."
-                        className="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-white placeholder-slate-500 focus:border-amber-400 outline-none"
+                        className="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder-slate-500 focus:border-amber-400 outline-none"
                       />
+                      <select
+                        value={inviteRole}
+                        onChange={(e) => setInviteRole(e.target.value)}
+                        className="bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:border-amber-400 outline-none font-semibold cursor-pointer shrink-0"
+                        title="Selecione o cargo inicial do convidado na guilda"
+                      >
+                        <option value="MEMBER">🌱 Membro (+5% XP)</option>
+                        <option value="VETERAN">⭐ Veterano (+10% XP)</option>
+                        <option value="MENTOR">🧠 Orientador (+10% XP)</option>
+                        <option value="SUB_LEADER">⚔️ Sub-Líder (+15% XP)</option>
+                      </select>
                       <button
                         type="submit"
                         disabled={inviteLoading || !inviteIdentifier.trim()}
-                        className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs transition-colors flex items-center gap-1.5 shrink-0 disabled:opacity-50"
+                        className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-4 py-2.5 rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 shrink-0 disabled:opacity-50 cursor-pointer shadow-md shadow-amber-500/20"
                       >
                         {inviteLoading ? <Loader2 size={14} className="animate-spin" /> : <UserPlus size={14} />}
                         Convidar
@@ -1382,17 +1441,77 @@ function Guildas() {
                     </form>
                   </div>
 
-                  {/* Lista de membros */}
+                  {/* Guia de Benefícios Padronizados da Guilda (Colapsável) */}
+                  {showBenefitsGuide && (
+                    <div className="p-4 rounded-2xl bg-gradient-to-br from-amber-500/10 via-slate-900 to-slate-950 border border-amber-500/30 space-y-3 animate-fade-in">
+                      <div className="flex items-center gap-2">
+                        <Shield size={18} className="text-amber-400" />
+                        <h4 className="text-xs font-black text-white uppercase tracking-wider">
+                          Hierarquia & Benefícios Padronizados da Guilda
+                        </h4>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                        <div className="p-2.5 rounded-xl bg-slate-900/80 border border-amber-500/30">
+                          <span className="font-black text-amber-300 flex items-center gap-1">
+                            👑 Líder Supremo (Criador) • +25% XP
+                          </span>
+                          <p className="text-[11px] text-slate-300 mt-0.5">
+                            Autoridade máxima e exclusiva do criador. Gestão completa, alteração de cargos de todos e expulsão auditada.
+                          </p>
+                        </div>
+                        <div className="p-2.5 rounded-xl bg-slate-900/80 border border-purple-500/30">
+                          <span className="font-black text-purple-300 flex items-center gap-1">
+                            ⚔️ Sub-Líder (Vice-Líder) • +15% XP
+                          </span>
+                          <p className="text-[11px] text-slate-300 mt-0.5">
+                            Braço direito do líder. Pode moderar chat (apagar mensagens) e convidar novos integrantes.
+                          </p>
+                        </div>
+                        <div className="p-2.5 rounded-xl bg-slate-900/80 border border-cyan-500/30">
+                          <span className="font-black text-cyan-300 flex items-center gap-1">
+                            🧠 Orientador (Mentor) • +10% XP (+20 XP bônus)
+                          </span>
+                          <p className="text-[11px] text-slate-300 mt-0.5">
+                            Tutor acadêmico da guilda. Destaque visual nas dúvidas e ganha +20 XP ao sanar dúvidas no fórum/chat.
+                          </p>
+                        </div>
+                        <div className="p-2.5 rounded-xl bg-slate-900/80 border border-yellow-500/30">
+                          <span className="font-black text-yellow-300 flex items-center gap-1">
+                            ⭐ Veterano • +10% XP
+                          </span>
+                          <p className="text-[11px] text-slate-300 mt-0.5">
+                            Membro assíduo com histórico destacado. +10% de bônus fixo de XP nas sessões Pomodoro da guilda.
+                          </p>
+                        </div>
+                      </div>
+                      <div className="p-2.5 rounded-xl bg-slate-900/80 border border-emerald-500/30">
+                        <span className="font-black text-emerald-300 flex items-center gap-1">
+                          🌱 Membro (Aprendiz) • +5% XP
+                        </span>
+                        <p className="text-[11px] text-slate-300 mt-0.5">
+                          Cargo inicial de todo aluno. Acesso irrestrito à sede, lousa, chat e ranking interno da guilda.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Lista de membros com gerenciamento de cargo */}
                   <div className="space-y-2">
-                    <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                      Membros Integrados ({activeGuild.members?.length || 0})
+                    <div className="flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-wider">
+                      <span>Membros Integrados ({activeGuild.members?.length || 0})</span>
+                      <span className="text-[11px] text-amber-400 font-semibold lowercase">
+                        {isLeader ? 'você pode alterar os cargos abaixo' : 'cargos da guilda'}
+                      </span>
                     </div>
                     
                     <div className="divide-y divide-slate-800/80 bg-slate-900/60 rounded-xl border border-slate-800 overflow-hidden">
                       {(activeGuild.members || []).map(member => {
-                        const isThisMemberLeader = member.id === activeGuild.leader;
+                        const isThisMemberCreator = member.id === activeGuild.leader;
+                        const roleKey = isThisMemberCreator ? 'LEADER' : (member.guild_role || 'MEMBER');
+                        const benefits = member.benefits || {};
+
                         return (
-                          <div key={member.id} className="p-3.5 flex items-center justify-between gap-3">
+                          <div key={member.id} className="p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-800/40 transition-colors">
                             <div className="flex items-center gap-3 min-w-0">
                               <img 
                                 src={member.avatar || `https://api.dicebear.com/7.x/adventurer/svg?seed=${member.username}`}
@@ -1400,22 +1519,34 @@ function Guildas() {
                                 className="w-10 h-10 rounded-full object-cover border border-slate-700 shrink-0"
                               />
                               <div className="min-w-0">
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 flex-wrap">
                                   <span className="font-bold text-sm text-white truncate">
                                     {member.name || member.username}
                                   </span>
-                                  {isThisMemberLeader && (
-                                    <span className="bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0">
-                                      <Crown size={11} /> Líder
-                                    </span>
-                                  )}
-                                  {member.role === 'ADMIN' && (
-                                    <span className="bg-red-500/20 text-red-300 border border-red-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0">
-                                      <Shield size={11} /> Admin
+                                  
+                                  {/* Badge de Hierarquia */}
+                                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${
+                                    roleKey === 'LEADER'
+                                      ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                                      : roleKey === 'SUB_LEADER'
+                                        ? 'bg-purple-500/20 text-purple-300 border-purple-500/40'
+                                        : roleKey === 'MENTOR'
+                                          ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40'
+                                          : roleKey === 'VETERAN'
+                                            ? 'bg-yellow-500/20 text-yellow-300 border-yellow-500/40'
+                                            : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                                  }`}>
+                                    {benefits.badge || (isThisMemberCreator ? '👑 Líder Supremo' : '🌱 Membro')}
+                                  </span>
+
+                                  {benefits.xp_bonus_percent && (
+                                    <span className="text-[10px] font-bold text-amber-400 bg-amber-400/10 px-1.5 py-0.2 rounded border border-amber-400/20">
+                                      +{benefits.xp_bonus_percent}% XP
                                     </span>
                                   )}
                                 </div>
-                                <div className="text-[11px] text-slate-400 flex items-center gap-2 mt-0.5">
+                                
+                                <div className="text-[11px] text-slate-400 flex items-center gap-2 mt-0.5 flex-wrap">
                                   <span>@{member.username}</span>
                                   <span>•</span>
                                   <span>Nível {member.level || 1}</span>
@@ -1425,20 +1556,41 @@ function Guildas() {
                               </div>
                             </div>
 
-                            {!isThisMemberLeader && (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setMemberToExpel(member);
-                                  setExpulsionReason('');
-                                }}
-                                className="text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-xl px-3 py-1.5 text-xs font-semibold flex items-center gap-1.5 transition-colors shrink-0"
-                                title="Expulsar membro da guilda (com registro auditado)"
-                              >
-                                <UserX size={14} />
-                                <span className="hidden sm:inline">Expulsar</span>
-                              </button>
-                            )}
+                            {/* Ações de Administração de Cargo e Expulsão */}
+                            <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+                              {/* Seletor de Cargo (Exclusivo do Criador/Líder Supremo para membros que não são ele mesmo) */}
+                              {isLeader && !isThisMemberCreator && (
+                                <div className="flex items-center gap-1.5">
+                                  <select
+                                    value={member.guild_role || 'MEMBER'}
+                                    disabled={updatingRoleId === member.id}
+                                    onChange={(e) => handleUpdateMemberRole(member.id, e.target.value)}
+                                    className="bg-slate-950 border border-slate-700 text-xs text-white rounded-lg px-2.5 py-1.5 focus:border-amber-400 outline-none cursor-pointer font-semibold"
+                                    title="Alterar cargo hierárquico deste integrante"
+                                  >
+                                    <option value="SUB_LEADER">⚔️ Sub-Líder (+15% XP)</option>
+                                    <option value="MENTOR">🧠 Orientador (+10% XP)</option>
+                                    <option value="VETERAN">⭐ Veterano (+10% XP)</option>
+                                    <option value="MEMBER">🌱 Membro (+5% XP)</option>
+                                  </select>
+                                </div>
+                              )}
+
+                              {!isThisMemberCreator && isLeader && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setMemberToExpel(member);
+                                    setExpulsionReason('');
+                                  }}
+                                  className="text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-xl px-2.5 py-1.5 text-xs font-semibold flex items-center gap-1.5 transition-colors shrink-0 cursor-pointer"
+                                  title="Expulsar membro da guilda (com registro auditado)"
+                                >
+                                  <UserX size={14} />
+                                  <span className="hidden sm:inline">Expulsar</span>
+                                </button>
+                              )}
+                            </div>
                           </div>
                         );
                       })}

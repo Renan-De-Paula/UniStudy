@@ -4,8 +4,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from django.contrib.auth import get_user_model
 from django.db.models import Q
-from .models import Squad, SquadMessage, SquadExpulsionLog
-from .serializers import SquadSerializer, SquadMessageSerializer, SquadExpulsionLogSerializer
+from .models import Squad, SquadMessage, SquadExpulsionLog, SquadMembership
+from .serializers import SquadSerializer, SquadMessageSerializer, SquadExpulsionLogSerializer, SquadMemberSerializer
 
 User = get_user_model()
 
@@ -18,11 +18,20 @@ class SquadViewSet(viewsets.ModelViewSet):
         if not user or not user.is_authenticated:
             return False
         is_admin = getattr(user, 'role', '') == 'ADMIN' or user.is_staff or user.is_superuser
-        return squad.leader == user or is_admin
+        return squad.leader_id == user.id or is_admin
+
+    def _is_sub_leader_or_higher(self, squad, user):
+        if self._is_leader_or_admin(squad, user):
+            return True
+        if not user or not user.is_authenticated:
+            return False
+        return SquadMembership.objects.filter(squad=squad, user=user, role='SUB_LEADER').exists()
 
     def perform_create(self, serializer):
         squad = serializer.save(leader=self.request.user)
         squad.members.add(self.request.user)
+        # Registra o criador como o único Líder Supremo
+        SquadMembership.objects.get_or_create(squad=squad, user=self.request.user, defaults={'role': 'LEADER'})
         # Bônus de +30 XP por fundar uma guilda de estudos
         self.request.user.xp += 30
         self.request.user.save(update_fields=['xp'])
@@ -52,13 +61,15 @@ class SquadViewSet(viewsets.ModelViewSet):
         squad = self.get_object()
         user = request.user
 
-        if squad.members.filter(id=user.id).exists() or squad.leader == user:
+        if squad.members.filter(id=user.id).exists() or squad.leader_id == user.id:
             return Response({"error": "Você já é membro desta guilda."}, status=status.HTTP_400_BAD_REQUEST)
 
         if squad.members.count() >= squad.max_members:
             return Response({"error": "Esta guilda atingiu a capacidade máxima de membros."}, status=status.HTTP_400_BAD_REQUEST)
 
         squad.members.add(user)
+        SquadMembership.objects.get_or_create(squad=squad, user=user, defaults={'role': 'MEMBER'})
+
         return Response({
             "message": f"Você ingressou na guilda {squad.title}!",
             "members_count": squad.members.count(),
@@ -70,13 +81,15 @@ class SquadViewSet(viewsets.ModelViewSet):
         squad = self.get_object()
         user = request.user
 
-        if squad.leader == user:
+        if squad.leader_id == user.id:
             return Response({"error": "O fundador/líder não pode abandonar a guilda. Você pode transferir a liderança ou excluir a guilda."}, status=status.HTTP_400_BAD_REQUEST)
 
         if not squad.members.filter(id=user.id).exists():
             return Response({"error": "Você não é membro desta guilda."}, status=status.HTTP_400_BAD_REQUEST)
 
         squad.members.remove(user)
+        SquadMembership.objects.filter(squad=squad, user=user).delete()
+
         return Response({
             "message": f"Você saiu da guilda {squad.title}.",
             "members_count": squad.members.count(),
@@ -86,10 +99,22 @@ class SquadViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
     def invite(self, request, pk=None):
         squad = self.get_object()
-        if not self._is_leader_or_admin(squad, request.user):
-            return Response({"error": "Apenas o líder ou administrador pode convidar novos membros."}, status=status.HTTP_403_FORBIDDEN)
+        is_leader_or_admin = self._is_leader_or_admin(squad, request.user)
+        is_sub_leader = SquadMembership.objects.filter(squad=squad, user=request.user, role='SUB_LEADER').exists()
+
+        if not (is_leader_or_admin or is_sub_leader):
+            return Response({"error": "Apenas o Líder Supremo ou Sub-Líderes podem convidar novos membros."}, status=status.HTTP_403_FORBIDDEN)
 
         identifier = request.data.get('identifier', '').strip()
+        assigned_role = request.data.get('role', 'MEMBER').upper()
+
+        # Somente o criador/líder pode convidar atribuindo cargos elevados (Sub-Líder, Orientador, Veterano)
+        if not is_leader_or_admin and assigned_role != 'MEMBER':
+            assigned_role = 'MEMBER'
+
+        if assigned_role not in ['SUB_LEADER', 'MENTOR', 'VETERAN', 'MEMBER']:
+            assigned_role = 'MEMBER'
+
         if not identifier:
             return Response({"error": "Informe o nome de usuário ou e-mail a ser convidado."}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -97,16 +122,67 @@ class SquadViewSet(viewsets.ModelViewSet):
         if not target_user:
             return Response({"error": f"Nenhum usuário encontrado com '{identifier}'."}, status=status.HTTP_404_NOT_FOUND)
 
-        if squad.members.filter(id=target_user.id).exists() or squad.leader == target_user:
+        if squad.members.filter(id=target_user.id).exists() or squad.leader_id == target_user.id:
             return Response({"error": f"{target_user.username} já faz parte desta guilda."}, status=status.HTTP_400_BAD_REQUEST)
 
         if squad.members.count() >= squad.max_members:
             return Response({"error": "A guilda atingiu o limite máximo de membros."}, status=status.HTTP_400_BAD_REQUEST)
 
         squad.members.add(target_user)
+        SquadMembership.objects.update_or_create(squad=squad, user=target_user, defaults={'role': assigned_role})
+
+        role_display = dict(SquadMembership.ROLE_CHOICES).get(assigned_role, 'Membro')
         return Response({
-            "message": f"Usuário {target_user.username} foi adicionado à guilda com sucesso!",
-            "members_count": squad.members.count()
+            "message": f"Usuário {target_user.username} foi adicionado à guilda com o cargo '{role_display}'!",
+            "members_count": squad.members.count(),
+            "assigned_role": assigned_role
+        }, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
+    def update_member_role(self, request, pk=None):
+        """
+        Permite ao Líder Supremo (criador da guilda) alterar o cargo e benefícios de qualquer integrante.
+        Cargos disponíveis: Sub-Líder, Orientador, Veterano, Membro.
+        """
+        squad = self.get_object()
+        if not self._is_leader_or_admin(squad, request.user):
+            return Response({"error": "Apenas o Líder Supremo ou um administrador geral pode alterar a hierarquia de membros."}, status=status.HTTP_403_FORBIDDEN)
+
+        user_id = request.data.get('user_id')
+        new_role = str(request.data.get('role', '')).upper().strip()
+
+        if not user_id:
+            return Response({"error": "ID do usuário é obrigatório."}, status=status.HTTP_400_BAD_REQUEST)
+
+        valid_roles = ['SUB_LEADER', 'MENTOR', 'VETERAN', 'MEMBER']
+        if new_role not in valid_roles:
+            return Response({"error": f"Cargo inválido. Escolha entre: {', '.join(valid_roles)}."}, status=status.HTTP_400_BAD_REQUEST)
+
+        target_user = User.objects.filter(id=user_id).first()
+        if not target_user:
+            return Response({"error": "Usuário não encontrado."}, status=status.HTTP_404_NOT_FOUND)
+
+        if target_user.id == squad.leader_id:
+            return Response({"error": "O fundador da guilda é o único Líder Supremo e seu cargo é permanente."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not squad.members.filter(id=target_user.id).exists():
+            return Response({"error": "Este usuário não faz parte dos membros desta guilda."}, status=status.HTTP_400_BAD_REQUEST)
+
+        membership, _ = SquadMembership.objects.update_or_create(
+            squad=squad,
+            user=target_user,
+            defaults={'role': new_role}
+        )
+
+        role_info = SquadMembership.ROLE_BENEFITS.get(new_role, {})
+        role_display = dict(SquadMembership.ROLE_CHOICES).get(new_role, new_role)
+
+        return Response({
+            "message": f"Cargo de {target_user.username} atualizado para '{role_display}' com sucesso!",
+            "user_id": target_user.id,
+            "role": new_role,
+            "role_display": role_display,
+            "benefits": role_info
         }, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
@@ -130,11 +206,12 @@ class SquadViewSet(viewsets.ModelViewSet):
         if not target_user:
             return Response({"error": "Este usuário não é membro desta guilda."}, status=status.HTTP_404_NOT_FOUND)
 
-        if target_user == squad.leader:
+        if target_user.id == squad.leader_id:
             return Response({"error": "O líder fundador da guilda não pode ser expulso."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Remove o usuário da guilda
+        # Remove o usuário da guilda e exclui a filiação
         squad.members.remove(target_user)
+        SquadMembership.objects.filter(squad=squad, user=target_user).delete()
 
         # Registra auditoria obrigatória de expulsão
         SquadExpulsionLog.objects.create(
@@ -198,10 +275,11 @@ class SquadViewSet(viewsets.ModelViewSet):
                 return Response({"error": "Mensagem não encontrada."}, status=status.HTTP_404_NOT_FOUND)
 
             is_admin = getattr(request.user, 'role', '') == 'ADMIN' or request.user.is_staff or request.user.is_superuser
-            is_leader = squad.leader == request.user
-            is_author = msg.author == request.user
+            is_leader = squad.leader_id == request.user.id
+            is_author = msg.author_id == request.user.id
+            is_sub_leader = SquadMembership.objects.filter(squad=squad, user=request.user, role='SUB_LEADER').exists()
 
-            if not (is_author or is_leader or is_admin):
+            if not (is_author or is_leader or is_sub_leader or is_admin):
                 return Response({"error": "Você não tem permissão para excluir esta mensagem."}, status=status.HTTP_403_FORBIDDEN)
 
             msg.delete()

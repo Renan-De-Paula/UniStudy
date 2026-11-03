@@ -1,5 +1,11 @@
 from django.contrib import admin
-from .models import Squad, SquadMessage, SquadExpulsionLog
+from .models import Squad, SquadMessage, SquadExpulsionLog, SquadMembership
+
+@admin.register(SquadMembership)
+class SquadMembershipAdmin(admin.ModelAdmin):
+    list_display = ('squad', 'user', 'role', 'joined_at')
+    list_filter = ('role', 'joined_at', 'squad')
+    search_fields = ('squad__title', 'user__username')
 
 @admin.register(Squad)
 class SquadAdmin(admin.ModelAdmin):
