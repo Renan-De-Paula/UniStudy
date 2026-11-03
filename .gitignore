@@ -11,11 +11,13 @@ env/
 __pycache__/
 *.pyc
 
-# Node
+# Node & Static
 node_modules/
 dist/
 build/
 .next/
+staticfiles/
+backend/staticfiles/
 
 # IDEs
 .vscode/

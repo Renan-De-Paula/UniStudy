@@ -21,6 +21,14 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-kw#t6l-9ftwg9mf+h9pb_o$h$c
 DEBUG = True
 ALLOWED_HOSTS = ['*']
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.onrender.com',
+    'https://*.vercel.app',
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'http://127.0.0.1:8001',
+]
+
 INSTALLED_APPS = [
     'daphne',
     'django.contrib.admin',
@@ -110,10 +118,14 @@ else:
     }
 
 if os.getenv('DATABASE_URL') and dj_database_url:
+    db_url = os.getenv('DATABASE_URL')
+    ssl_req = 'neon.tech' in db_url or 'sslmode=require' in db_url or os.getenv('DB_SSL_REQUIRE', 'False').lower() in ('true', '1')
     DATABASES = {
         'default': dj_database_url.config(
-            default=os.getenv('DATABASE_URL'),
-            conn_max_age=600
+            default=db_url,
+            conn_max_age=600,
+            conn_health_checks=True,
+            ssl_require=ssl_req
         )
     }
 else:
