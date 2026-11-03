@@ -1,6 +1,12 @@
+import sys
+from pathlib import Path
 from django.db import migrations
 
 def run_seed(apps, schema_editor):
+    backend_dir = str(Path(__file__).resolve().parent.parent.parent)
+    if backend_dir not in sys.path:
+        sys.path.insert(0, backend_dir)
+        
     try:
         from setup_users import setup
         setup()
