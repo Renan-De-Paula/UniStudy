@@ -635,8 +635,17 @@ function Guildas() {
             )}
 
             {guildas.map(guilda => {
-              const isMember = guilda.is_member;
-              const isLeader = guilda.is_leader;
+              const isGuildLeader = Boolean(
+                guilda.is_leader || 
+                (currentUser && guilda.leader === currentUser.id) ||
+                (currentUser && currentUser.role === 'ADMIN') ||
+                (currentUser && currentUser.is_staff)
+              );
+              const isMember = Boolean(
+                guilda.is_member || 
+                isGuildLeader || 
+                (currentUser && (guilda.members || []).some(m => m.id === currentUser.id))
+              );
 
               return (
                 <div key={guilda.id} className="bg-slate-800 rounded-2xl overflow-hidden border border-slate-700 shadow-xl flex flex-col justify-between group hover:border-primary/50 transition-all">
@@ -660,9 +669,9 @@ function Guildas() {
                   <div className="p-6 pt-9 flex-1 flex flex-col">
                     <div className="flex items-center gap-2 mb-1">
                       <h3 className="text-xl font-black text-white leading-tight">{guilda.title}</h3>
-                      {isLeader && (
-                        <span className="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-1.5 py-0.5 rounded font-bold uppercase flex items-center gap-1">
-                          <Crown size={11} /> Líder
+                      {isGuildLeader && (
+                        <span className="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full font-bold uppercase flex items-center gap-1 shrink-0">
+                          <Crown size={11} /> Sua Guilda (Líder)
                         </span>
                       )}
                     </div>
@@ -692,18 +701,36 @@ function Guildas() {
                         <span>Líder: <strong className="text-slate-200">{guilda.leader_name}</strong></span>
                       </div>
 
-                      <div className="w-full sm:w-auto flex gap-2">
+                      <div className="w-full sm:w-auto flex flex-wrap items-center gap-2">
+                        {isGuildLeader && (
+                          <button 
+                            onClick={() => {
+                              setActiveGuild(guilda);
+                              setEditTitle(guilda.title || '');
+                              setEditDesc(guilda.description || '');
+                              setEditShift(guilda.available_shifts || 'Noite');
+                              setEditSkills(Array.isArray(guilda.needed_skills) ? guilda.needed_skills.join(', ') : (guilda.needed_skills || ''));
+                              setEditMaxMembers(guilda.max_members || 10);
+                              setShowManageModal(true);
+                              setManageTab('info');
+                            }}
+                            className="w-full sm:w-auto bg-amber-500 hover:bg-amber-400 text-slate-950 font-black py-2 px-3.5 rounded-xl text-xs transition-all shadow-md shadow-amber-500/20 flex items-center justify-center gap-1.5 cursor-pointer"
+                            title="Gerenciar configurações, convidar membros ou moderar guilda"
+                          >
+                            <Settings size={14} /> Gerenciar Guilda
+                          </button>
+                        )}
                         {isMember ? (
                           <button 
                             onClick={() => setActiveGuild(guilda)}
-                            className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white font-bold py-2 px-4 rounded-xl text-xs transition-colors shadow-md shadow-primary/20 flex items-center justify-center gap-1.5"
+                            className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white font-bold py-2 px-4 rounded-xl text-xs transition-colors shadow-md shadow-primary/20 flex items-center justify-center gap-1.5 cursor-pointer"
                           >
                             Acessar Sede
                           </button>
                         ) : (
                           <button 
                             onClick={() => handleJoinGuild(guilda.id)}
-                            className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-4 rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 shadow-md shadow-emerald-600/20"
+                            className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-4 rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 shadow-md shadow-emerald-600/20 cursor-pointer"
                           >
                             <CheckCircle2 size={14} /> Entrar na Guilda
                           </button>
@@ -725,7 +752,12 @@ function Guildas() {
   // ==========================================
   // TELA 2: SEDE DA GUILDA (CHAT, LOUSA, FOCO)
   // ==========================================
-  const isLeader = activeGuild.is_leader;
+  const isLeader = Boolean(
+    activeGuild?.is_leader || 
+    (currentUser && activeGuild?.leader === currentUser.id) ||
+    (currentUser && currentUser.role === 'ADMIN') ||
+    (currentUser && currentUser.is_staff)
+  );
 
   return (
     <div className="bg-[#1e293b] h-[78vh] sm:h-[82vh] md:h-[85vh] rounded-2xl border border-slate-700 shadow-2xl flex flex-col md:flex-row overflow-hidden animate-fade-in relative">
@@ -750,10 +782,11 @@ function Guildas() {
                 setShowManageModal(true);
                 setManageTab('info');
               }}
-              className="text-amber-400 hover:text-amber-300 p-1.5 hover:bg-amber-500/10 rounded-lg text-xs flex items-center gap-1"
-              title="Gerenciar Guilda (Líder / Admin)"
+              className="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 font-bold p-1.5 rounded-xl text-xs flex items-center gap-1"
+              title="Painel de Gestão da Guilda"
             >
-              <Settings size={18} />
+              <Settings size={16} />
+              <span className="text-[11px] font-bold">Gestão</span>
             </button>
           )}
           <div className="flex items-center gap-1.5">
@@ -763,11 +796,11 @@ function Guildas() {
                   setShowManageModal(true);
                   setManageTab('info');
                 }}
-                className="text-amber-400 hover:text-amber-300 p-1.5 hover:bg-amber-500/10 rounded-lg text-xs flex items-center gap-1 font-semibold"
-                title="Gerenciar Guilda (Líder / Admin)"
+                className="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 font-bold py-1.5 px-3 rounded-xl text-xs flex items-center gap-1.5 transition-all shadow-sm"
+                title="Painel de Gestão da Guilda (Líder / Admin)"
               >
-                <Settings size={16} />
-                <span className="hidden lg:inline text-[11px]">Gerenciar</span>
+                <Settings size={15} />
+                <span>Painel de Gestão</span>
               </button>
             )}
             {!isLeader && (

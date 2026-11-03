@@ -147,6 +147,20 @@ function Home() {
           )}
 
           <button 
+            onClick={() => setActiveTab('amigos')}
+            className={`relative flex items-center gap-1 py-1 px-2.5 rounded-full border text-xs font-bold transition-all shadow-sm active:scale-95 shrink-0 ${activeTab === 'amigos' ? 'bg-primary text-white border-primary shadow-primary/30' : 'bg-slate-800/90 hover:bg-slate-700 text-slate-300 border-slate-700'}`}
+            title="Amigos e Chat Privado"
+          >
+            <UserCheck size={14} />
+            <span>Amigos</span>
+            {pendingFriendsCount > 0 && (
+              <span className="bg-amber-500 text-slate-950 font-black text-[9px] w-4 h-4 rounded-full flex items-center justify-center animate-pulse">
+                {pendingFriendsCount}
+              </span>
+            )}
+          </button>
+
+          <button 
             onClick={() => setActiveTab('perfil')}
             className="flex items-center gap-1.5 bg-slate-800/80 hover:bg-slate-700 border border-slate-700 py-1 px-2 rounded-full text-xs font-bold text-white transition-all shadow-sm active:scale-95 shrink-0"
             title="Ver Perfil"
@@ -651,7 +665,7 @@ function Home() {
           {activeTab === 'amigos' && <Amigos />}
 
           {/* TAB: PERFIL */}
-          {activeTab === 'perfil' && <Perfil />}
+          {activeTab === 'perfil' && <Perfil setActiveTab={setActiveTab} />}
 
 
 
@@ -659,12 +673,12 @@ function Home() {
         </div>
       </main>
 
-      {/* Mobile Bottom Navigation Bar (Fase 12: Navegação Rápida com o Polegar no Celular) */}
+      {/* Mobile Bottom Navigation Bar (Navegação Rápida com Amigos e Guildas) */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-darker/95 backdrop-blur-xl border-t border-slate-700/80 px-1 py-1 z-40 flex items-center justify-around shadow-2xl safe-area-bottom">
         {[
           { id: 'home', label: 'Início', icon: <HomeIcon size={19} /> },
-          { id: 'apostilas', label: 'Apostilas', icon: <BookOpen size={19} /> },
-          { id: 'cursos', label: 'Cursos', icon: <GraduationCap size={19} /> },
+          { id: 'amigos', label: 'Amigos', icon: <UserCheck size={19} />, badge: pendingFriendsCount > 0 ? pendingFriendsCount : null },
+          { id: 'guildas', label: 'Guildas', icon: <Users size={19} /> },
           { id: 'forum', label: 'Fórum', icon: <MessageSquare size={19} /> },
           { id: 'perfil', label: 'Perfil', icon: <User size={19} /> },
         ].map(navItem => {

@@ -11,10 +11,10 @@ import {
   User, Mail, MapPin, Award, BookOpen, Star, Activity, 
   Settings, Camera, Shield, Zap, Target, Edit3, MessageSquare,
   CheckCircle, AlertCircle, Loader2, Upload, GraduationCap, LogOut,
-  ShoppingBag, Sparkles, Check, Clock, X, ExternalLink
+  ShoppingBag, Sparkles, Check, Clock, X, ExternalLink, Users, UserCheck
 } from 'lucide-react';
 
-function Perfil() {
+function Perfil({ setActiveTab: setParentTab }) {
   const { currentUser, updateCurrentUser, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
   const [trilhas, setTrilhas] = useState([]);
@@ -412,6 +412,18 @@ function Perfil() {
               <Shield size={16} />
               <span>Admin</span>
             </a>
+          )}
+
+          {setParentTab && (
+            <button 
+              type="button"
+              onClick={() => setParentTab('amigos')}
+              className="flex-1 sm:flex-initial bg-primary/20 hover:bg-primary text-primary hover:text-white border border-primary/40 font-bold py-2 sm:py-2.5 px-3.5 sm:px-4 rounded-xl transition-all flex items-center justify-center gap-1.5 text-xs sm:text-sm active:scale-95 cursor-pointer shadow-sm"
+              title="Acessar rede de amigos e chat privado"
+            >
+              <Users size={16} />
+              <span>Amigos & Chat</span>
+            </button>
           )}
 
           <button 
