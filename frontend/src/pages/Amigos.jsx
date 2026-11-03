@@ -663,6 +663,9 @@ function Amigos({ initialChatFriend = null }) {
                   </div>
 
                   <div className="flex items-center gap-2">
+                    <span className="text-[10px] text-amber-300 font-semibold bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-full hidden md:inline-flex items-center gap-1" title="Histórico renovado semanalmente todo domingo às 23:59 para manter o banco leve.">
+                      🧹 Faxina: Domingo 23:59
+                    </span>
                     <span className="text-[10px] text-emerald-400 font-bold bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full hidden sm:inline-flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Estudo 1-on-1
                     </span>
@@ -671,6 +674,11 @@ function Amigos({ initialChatFriend = null }) {
 
                 {/* Feed de Mensagens */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gradient-to-b from-[#0f172a]/30 to-[#1e293b]">
+                  <div className="text-center py-1">
+                    <span className="text-[10px] text-slate-400 bg-slate-900/80 border border-slate-800 px-3 py-1 rounded-full inline-block">
+                      🧹 Mensagens privadas são reiniciadas automaticamente todo domingo às 23:59
+                    </span>
+                  </div>
                   {loadingMessages ? (
                     <div className="py-16 text-center text-slate-400 flex items-center justify-center gap-2 text-xs">
                       <Loader2 size={18} className="animate-spin text-primary" />

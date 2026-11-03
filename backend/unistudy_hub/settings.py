@@ -186,4 +186,7 @@ if USE_S3:
 DATA_UPLOAD_MAX_MEMORY_SIZE = 52428800
 FILE_UPLOAD_MAX_MEMORY_SIZE = 52428800
 
+# Chave secreta para automações cron e faxina semanal
+CRON_SECRET = os.getenv('CRON_SECRET', SECRET_KEY)
+
 

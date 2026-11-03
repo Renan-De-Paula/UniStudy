@@ -1,0 +1,19 @@
+name: Faxina Semanal de Mensagens (Domingo 23:59 BRT)
+
+on:
+  schedule:
+    # 23:59 no Horário de Brasília (UTC-3) corresponde a 02:59 UTC de Segunda-feira
+    - cron: '59 2 * * 1'
+  workflow_dispatch: # Permite disparo manual pelo painel do GitHub Actions
+
+jobs:
+  purge-messages:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Executar Faxina de Mensagens no Backend
+        run: |
+          echo "Disparando limpeza semanal automática de mensagens..."
+          curl -X POST https://unistudy-backend.onrender.com/api/chat/messages/purge_weekly/ \
+            -H "Content-Type: application/json" \
+            -H "X-Cron-Key: ${{ secrets.CRON_SECRET }}" \
+            --fail || echo "Aviso: Se o backend estiver hibernando, o agendador interno (scheduler.py) fará o catch-up automático ao iniciar."

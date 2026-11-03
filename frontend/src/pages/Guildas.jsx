@@ -1004,6 +1004,9 @@ function Guildas() {
                   </div>
                   <h4 className="text-lg font-bold text-white">Canal #{activeChannel}</h4>
                   <p className="text-slate-400 text-xs">Mensagens salvas e sincronizadas no banco de dados da guilda.</p>
+                  <p className="text-[11px] text-amber-300/90 mt-1.5 inline-flex items-center gap-1 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
+                    🧹 <strong>Faxina semanal:</strong> Todo domingo às 23:59 o chat é reiniciado para manter o banco leve e rápido.
+                  </p>
                 </div>
 
                 {loadingChat ? (

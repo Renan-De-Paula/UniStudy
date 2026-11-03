@@ -32,3 +32,24 @@ class DirectMessage(models.Model):
 
     def __str__(self):
         return f"{self.sender.username} -> {self.receiver.username} ({self.created_at.strftime('%d/%m/%Y %H:%M')})"
+
+
+class MessagePurgeLog(models.Model):
+    """
+    Registro de auditoria para a limpeza semanal de mensagens executada todo domingo às 23:59.
+    Garante que o banco de dados permaneça leve e rápido, registrando quantas mensagens foram excluídas.
+    """
+    purged_at = models.DateTimeField(auto_now_add=True, verbose_name='Data da Faxina')
+    squad_messages_deleted = models.IntegerField(default=0, verbose_name='Mensagens de Guilda Excluídas')
+    direct_messages_deleted = models.IntegerField(default=0, verbose_name='Mensagens Privadas Excluídas')
+    triggered_by = models.CharField(max_length=50, default='AUTO_SUNDAY', verbose_name='Disparado Por')
+    details = models.TextField(blank=True, verbose_name='Detalhes da Execução')
+
+    class Meta:
+        verbose_name = 'Log de Limpeza de Mensagens'
+        verbose_name_plural = 'Logs de Limpeza de Mensagens'
+        ordering = ['-purged_at']
+
+    def __str__(self):
+        total = self.squad_messages_deleted + self.direct_messages_deleted
+        return f"Limpeza {self.purged_at.strftime('%d/%m/%Y %H:%M')} ({self.triggered_by}): {total} mensagens excluídas"
