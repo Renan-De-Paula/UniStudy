@@ -146,6 +146,21 @@ class TrilhaListView(APIView):
         } for t in trilhas]
         return Response(data)
 
+class TrilhaDetailView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def delete(self, request, trilha_id):
+        try:
+            trilha = Trilha.objects.get(id=trilha_id, user=request.user)
+            titulo = trilha.titulo
+            trilha.delete()
+            return Response({
+                "message": f"Trilha '{titulo}' excluída com sucesso!",
+                "deleted_id": trilha_id
+            }, status=status.HTTP_200_OK)
+        except Trilha.DoesNotExist:
+            return Response({"error": "Trilha não encontrada ou você não tem permissão para excluí-la."}, status=status.HTTP_404_NOT_FOUND)
+
 class ToggleTopicoView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
